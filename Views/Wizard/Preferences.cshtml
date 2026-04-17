@@ -1,0 +1,162 @@
+@model FoodRoute.Models.UserPreferences
+@{
+    ViewData["Title"] = "Tercihlerinizi Belirleyin";
+    Layout = "_Layout";
+
+    var selectedDays = Model?.Days > 0 ? Model.Days : 1;
+    var selectedCity = Model?.City ?? string.Empty;
+    var selectedCategories = Model?.Categories ?? new List<string>();
+
+    var completedSections = 1
+        + (!string.IsNullOrWhiteSpace(selectedCity) ? 1 : 0)
+        + (selectedCategories.Any() ? 1 : 0);
+    var progressPercent = (int)Math.Round((completedSections / 3d) * 100, MidpointRounding.AwayFromZero);
+
+    var cityOptions = new[]
+    {
+        new { Id = "istanbul", Value = "İstanbul", Label = "İstanbul", Icon = "🌉", Accent = "#FF6B35", Glow = "255,107,53", CountLabel = "200+ mekan" },
+        new { Id = "ankara", Value = "Ankara", Label = "Ankara", Icon = "🏛️", Accent = "#FFD166", Glow = "255,209,102", CountLabel = "120+ mekan" },
+        new { Id = "izmir", Value = "İzmir", Label = "İzmir", Icon = "🌊", Accent = "#06D6A0", Glow = "6,214,160", CountLabel = "150+ mekan" },
+        new { Id = "antalya", Value = "Antalya", Label = "Antalya", Icon = "☀️", Accent = "#c084fc", Glow = "192,132,252", CountLabel = "100+ mekan" }
+    };
+
+    var categoryOptions = new[]
+    {
+        new { Id = "vegan", Value = "Vegan", Label = "Vegan", Icon = "🌿", Accent = "#06D6A0", Glow = "6,214,160" },
+        new { Id = "vegetarian", Value = "Vegetarian", Label = "Vejetaryen", Icon = "🥗", Accent = "#06D6A0", Glow = "6,214,160" },
+        new { Id = "fine-dining", Value = "FineDining", Label = "Fine Dining", Icon = "🍽️", Accent = "#c084fc", Glow = "192,132,252" },
+        new { Id = "breakfast", Value = "Breakfast", Label = "Kahvaltı", Icon = "☀️", Accent = "#FFD166", Glow = "255,209,102" },
+        new { Id = "dinner", Value = "Dinner", Label = "Akşam Yemeği", Icon = "🌙", Accent = "#38bdf8", Glow = "56,189,248" },
+        new { Id = "luxury", Value = "Luxury", Label = "Lüks", Icon = "💎", Accent = "#c084fc", Glow = "192,132,252" },
+        new { Id = "street-food", Value = "StreetFood", Label = "Sokak Lezzetleri", Icon = "🥙", Accent = "#FF6B35", Glow = "255,107,53" },
+        new { Id = "dessert", Value = "Dessert", Label = "Tatlı", Icon = "🍰", Accent = "#ff6b6b", Glow = "255,107,107" },
+        new { Id = "coffee", Value = "Coffee", Label = "Kahve", Icon = "☕", Accent = "#d4936a", Glow = "212,147,106" },
+        new { Id = "seafood", Value = "Seafood", Label = "Deniz Ürünleri", Icon = "🦞", Accent = "#38bdf8", Glow = "56,189,248" },
+        new { Id = "traditional", Value = "Traditional", Label = "Geleneksel", Icon = "🫕", Accent = "#FFD166", Glow = "255,209,102" }
+    };
+}
+
+<section class="foodroute-preferences">
+    <div class="foodroute-preferences__shell">
+        <header class="foodroute-preferences__header">
+            <div class="foodroute-preferences__brand" aria-label="FoodRoute">
+                <span class="foodroute-preferences__brand-mark" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M7 3v8" />
+                        <path d="M10 3v8" />
+                        <path d="M7 7h3" />
+                        <path d="M15 3v18" />
+                        <path d="M18 3v7a3 3 0 0 1-3 3" />
+                    </svg>
+                </span>
+                <span class="foodroute-preferences__brand-text">
+                    <span>Food</span><span class="foodroute-preferences__brand-accent">Route</span>
+                </span>
+            </div>
+
+            <div class="foodroute-preferences__steps" aria-label="Adımlar">
+                <span class="foodroute-preferences__step is-active">Tercihler</span>
+                <span class="foodroute-preferences__step-arrow" aria-hidden="true">→</span>
+                <span class="foodroute-preferences__step">Keşfet</span>
+                <span class="foodroute-preferences__step-arrow" aria-hidden="true">→</span>
+                <span class="foodroute-preferences__step">Rotam</span>
+            </div>
+
+            <div class="foodroute-preferences__progress" id="preferences-progress" role="progressbar" aria-label="Tercih ilerleme durumu" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@progressPercent">
+                <span class="foodroute-preferences__progress-fill" id="preferences-progress-fill" style="width:@progressPercent%"></span>
+            </div>
+
+            <div class="foodroute-preferences__intro">
+                <h1 class="foodroute-preferences__title">Tercihlerinizi Belirleyin</h1>
+                <p class="foodroute-preferences__subtitle">Size özel yemek rotası için tercihlerinizi paylaşın</p>
+            </div>
+        </header>
+
+        <div class="foodroute-preferences__panel">
+            <form asp-action="Preferences" method="post" id="preferences-form" class="foodroute-preferences__form">
+                <section class="foodroute-preferences__section foodroute-preferences__section--1" aria-labelledby="days-section-title">
+                    <div class="foodroute-preferences__section-heading">
+                        <span class="foodroute-preferences__section-badge">01</span>
+                        <h2 class="foodroute-preferences__section-title" id="days-section-title">Kaç Günlük Rota?</h2>
+                    </div>
+
+                    <div class="foodroute-preferences__days-grid" role="radiogroup" aria-label="Kaç Günlük Rota">
+                        @for (var i = 1; i <= 7; i++)
+                        {
+                            <label class="foodroute-preferences__day-option">
+                                <input type="radio" name="Days" value="@i" class="foodroute-preferences__control-input" data-preference-role="days" @(selectedDays == i ? "checked" : null) />
+                                <span class="foodroute-preferences__day-button">@i</span>
+                            </label>
+                        }
+                    </div>
+
+                    <div class="foodroute-preferences__days-hint">
+                        <span>1 gün</span>
+                        <span class="foodroute-preferences__days-current" id="preferences-days-current" aria-live="polite">@selectedDays gün seçildi</span>
+                        <span>7 gün</span>
+                    </div>
+
+                    <div class="foodroute-preferences__divider" aria-hidden="true"></div>
+                </section>
+
+                <section class="foodroute-preferences__section foodroute-preferences__section--2" aria-labelledby="city-section-title">
+                    <div class="foodroute-preferences__section-heading">
+                        <span class="foodroute-preferences__section-badge">02</span>
+                        <h2 class="foodroute-preferences__section-title" id="city-section-title">Şehir Seçin</h2>
+                    </div>
+
+                    <div class="foodroute-preferences__city-grid" role="radiogroup" aria-label="Şehir Seçin">
+                        @foreach (var city in cityOptions)
+                        {
+                            <label class="foodroute-preferences__city-option" style="--option-accent:@city.Accent; --option-glow:@city.Glow;">
+                                <input type="radio" name="City" value="@city.Value" class="foodroute-preferences__control-input" data-preference-role="city" @(selectedCity == city.Value ? "checked" : null) />
+                                <span class="foodroute-preferences__city-card">
+                                    <span class="foodroute-preferences__city-emoji" aria-hidden="true">@city.Icon</span>
+                                    <span class="foodroute-preferences__city-name">@city.Label</span>
+                                    <span class="foodroute-preferences__city-count">@city.CountLabel</span>
+                                </span>
+                            </label>
+                        }
+                    </div>
+
+                    <span asp-validation-for="City" class="foodroute-preferences__validation"></span>
+
+                    <div class="foodroute-preferences__divider" aria-hidden="true"></div>
+                </section>
+
+                <section class="foodroute-preferences__section foodroute-preferences__section--3" aria-labelledby="category-section-title">
+                    <div class="foodroute-preferences__section-heading">
+                        <span class="foodroute-preferences__section-badge">03</span>
+                        <h2 class="foodroute-preferences__section-title" id="category-section-title">Kategoriler</h2>
+                    </div>
+
+                    <div class="foodroute-preferences__category-grid" aria-label="Kategoriler">
+                        @foreach (var category in categoryOptions)
+                        {
+                            <label class="foodroute-preferences__category-option" style="--option-accent:@category.Accent; --option-glow:@category.Glow;">
+                                <input type="checkbox" name="Categories" value="@category.Value" class="foodroute-preferences__control-input" data-preference-role="category" @(selectedCategories.Contains(category.Value) ? "checked" : null) />
+                                <span class="foodroute-preferences__category-pill">
+                                    <span class="foodroute-preferences__category-icon" aria-hidden="true">@category.Icon</span>
+                                    <span>@category.Label</span>
+                                </span>
+                            </label>
+                        }
+                    </div>
+                </section>
+            </form>
+        </div>
+    </div>
+
+    <div class="foodroute-preferences__cta-dock">
+        <div class="foodroute-preferences__cta-inner">
+            <button type="submit" form="preferences-form" class="foodroute-preferences__cta-button">
+                <span>Rotamı Oluştur</span>
+                <span aria-hidden="true">→</span>
+            </button>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/js/preferences.js" asp-append-version="true"></script>
+}

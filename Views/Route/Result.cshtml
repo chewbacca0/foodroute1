@@ -1,0 +1,203 @@
+@using System.Text.Json
+@model FoodRoute.Models.RouteResult
+@{
+    ViewData["Title"] = "Yemek Rotanız";
+    Layout = "_Layout";
+
+    var likedRestaurants = ViewBag.LikedRestaurants as List<FoodRoute.Models.Restaurant> ?? new();
+    var routeRestaurants = likedRestaurants.Any()
+        ? likedRestaurants
+        : Model.Days.SelectMany(day => day.Meals).Select(meal => meal.Restaurant).DistinctBy(r => r.Id).ToList();
+
+    var likedRestaurantPayload = routeRestaurants
+        .Select(r => new
+        {
+            name = r.Name,
+            city = string.IsNullOrWhiteSpace(r.City) ? Model.City : r.City,
+            latitude = r.Latitude,
+            longitude = r.Longitude
+        })
+        .ToList();
+
+    string FormatMealLabel(string mealType)
+    {
+        return mealType switch
+        {
+            "Breakfast" => "KAHVALTI",
+            "Coffee" => "KAHVE MOLASI",
+            "Lunch" => "ÖĞLE YEMEĞİ",
+            "StreetFood" => "ÖĞLE YEMEĞİ",
+            "Dessert" => "TATLI",
+            "Dinner" => "AKŞAM YEMEĞİ",
+            _ => string.IsNullOrWhiteSpace(mealType) ? "YEMEK" : mealType.ToUpperInvariant()
+        };
+    }
+
+    string GetRestaurantMapUrl(FoodRoute.Models.Restaurant restaurant)
+    {
+        if (!string.IsNullOrWhiteSpace(restaurant.LocationUrl))
+        {
+            return restaurant.LocationUrl!;
+        }
+
+        var fallbackCity = string.IsNullOrWhiteSpace(restaurant.City) ? Model.City : restaurant.City;
+        var query = (restaurant.Latitude != 0 || restaurant.Longitude != 0)
+            ? $"{restaurant.Latitude},{restaurant.Longitude}"
+            : $"{restaurant.Name}, {fallbackCity}";
+
+        return $"https://www.google.com/maps/search/?api=1&query={Uri.EscapeDataString(query)}";
+    }
+}
+
+<section class="result-page">
+    <div class="result-container">
+        <div class="step-indicator" aria-label="Adımlar">
+            <div class="step completed">
+                <span class="step-number">✓</span>
+                <span class="step-label">Tercihler</span>
+            </div>
+            <div class="step-line" aria-hidden="true"></div>
+            <div class="step completed">
+                <span class="step-number">✓</span>
+                <span class="step-label">Seçim</span>
+            </div>
+            <div class="step-line" aria-hidden="true"></div>
+            <div class="step active">
+                <span class="step-number">3</span>
+                <span class="step-label">Rota</span>
+            </div>
+        </div>
+
+        <header class="result-header">
+            <h1 class="result-title">Yemek Rotanız Hazır!</h1>
+
+            <div class="result-pills">
+                <span class="result-pill">@Model.City</span>
+                <span class="result-pill">@Model.Days.Count Gün</span>
+                <span class="result-pill">@Model.TotalRestaurants Mekan</span>
+            </div>
+        </header>
+
+        <div class="route-content">
+            <div class="itinerary-panel">
+                @foreach (var day in Model.Days)
+                {
+                    <article class="day-card">
+                        <div class="day-header">
+                            <span class="day-badge">@day.DayLabel</span>
+                            <a href="@Url.Action("OpenGoogleMaps", "Route", new { dayNumber = day.DayNumber, travelMode = "walking" })"
+                               target="_blank"
+                               class="day-map-btn"
+                               title="Bu günün rotasını Google Maps'te aç">
+                                Rotayı Aç
+                            </a>
+                        </div>
+
+                        <div class="meals-list">
+                            @foreach (var meal in day.Meals)
+                            {
+                                var mapUrl = GetRestaurantMapUrl(meal.Restaurant);
+
+                                <article class="meal-item">
+                                    <div class="meal-type">@FormatMealLabel(meal.FoodItem.MealType)</div>
+                                    <div class="meal-content">
+                                        <img src="@meal.FoodItem.ImageUrl"
+                                             alt="@meal.FoodItem.Name"
+                                             class="meal-image"
+                                             onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100'">
+
+                                        <div class="meal-info">
+                                            <h4 class="meal-name">@meal.FoodItem.Name</h4>
+                                            <p class="meal-restaurant">@meal.Restaurant.Name</p>
+                                            <p class="meal-address">@meal.Restaurant.Address</p>
+                                        </div>
+
+                                        <a href="@mapUrl"
+                                           target="_blank"
+                                           class="map-link"
+                                           title="Haritada Göster"
+                                           aria-label="Haritada Göster">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <path d="M21 10c0 6-9 11-9 11S3 16 3 10a9 9 0 1 1 18 0Z" />
+                                                <circle cx="12" cy="10" r="3" />
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </article>
+                            }
+                        </div>
+                    </article>
+                }
+            </div>
+
+            <aside class="map-panel">
+                <div class="map-container">
+                    <div class="map-demo">
+                        <div class="map-header">@Model.City Yemek Rotası</div>
+
+                        <div class="map-pins">
+                            @for (int i = 0; i < routeRestaurants.Count; i++)
+                            {
+                                var restaurant = routeRestaurants[i];
+                                <div class="map-pin" style="animation-delay: @(i * 0.08)s">
+                                    <span class="pin-number">@(i + 1)</span>
+                                    <span class="pin-name">@restaurant.Name</span>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="map-actions">
+                            <button type="button" class="open-maps-btn" onclick="openRoute('walking')">Yürüyerek Git</button>
+                            <button type="button" class="open-maps-btn driving" onclick="openRoute('driving')">Arabayla Git</button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <div class="result-reset">
+            <a href="@Url.Action("Reset", "Wizard")" class="result-reset-button">← Yeni Rota Oluştur</a>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script id="liked-restaurants-data" type="application/json">
+        @Html.Raw(JsonSerializer.Serialize(likedRestaurantPayload))
+    </script>
+    <script>
+        const likedRestaurants = JSON.parse(document.getElementById('liked-restaurants-data')?.textContent ?? '[]');
+
+        const hasCoordinates = (restaurant) => {
+            const latitude = Number(restaurant.latitude);
+            const longitude = Number(restaurant.longitude);
+            return Number.isFinite(latitude) && Number.isFinite(longitude) && (latitude !== 0 || longitude !== 0);
+        };
+
+        const openRoute = (mode) => {
+            if (!Array.isArray(likedRestaurants) || likedRestaurants.length === 0) {
+                return;
+            }
+
+            const places = likedRestaurants.map((restaurant) =>
+                hasCoordinates(restaurant)
+                    ? encodeURIComponent(`${restaurant.latitude},${restaurant.longitude}`)
+                    : encodeURIComponent(`${restaurant.name},${restaurant.city}`)
+            );
+
+            if (places.length === 1) {
+                window.open(`https://www.google.com/maps/search/?api=1&query=${places[0]}`, '_blank');
+                return;
+            }
+
+            const origin = places[0];
+            const destination = places[places.length - 1];
+            const waypoints = places.slice(1, -1).join('|');
+            const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypoints ? `&waypoints=${waypoints}` : ''}&travelmode=${mode}`;
+
+            window.open(url, '_blank');
+        };
+
+        window.openRoute = openRoute;
+    </script>
+}

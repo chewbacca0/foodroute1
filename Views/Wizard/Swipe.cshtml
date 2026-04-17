@@ -1,0 +1,153 @@
+@model List<FoodRoute.Models.FoodItem>
+@{
+    ViewData["Title"] = "Yemekleri Keşfet";
+    Layout = "_Layout";
+
+    var likedCount = (int)(ViewBag.LikedCount ?? 0);
+    var city = ViewBag.City as string ?? string.Empty;
+    var swipeItems = Model.Take(10).Reverse().ToList();
+
+    string TranslateTag(string tag)
+    {
+        return tag.Trim() switch
+        {
+            "Traditional" => "Geleneksel",
+            "Vegetarian" => "Vejetaryen",
+            "FineDining" => "Fine Dining",
+            "Breakfast" => "Kahvaltı",
+            "Dinner" => "Akşam",
+            "StreetFood" => "Sokak",
+            "Luxury" => "Lüks",
+            "Vegan" => "Vegan",
+            "Dessert" => "Tatlı",
+            "Coffee" => "Kahve",
+            "Seafood" => "Deniz Ürünü",
+            "Healthy" => "Sağlıklı",
+            "Glutensiz" => "Glutensiz",
+            "Premium" => "Premium",
+            "Modern" => "Modern",
+            "Local" => "Yerel",
+            "Sweet" => "Tatlı",
+            "Creamy" => "Kremalı",
+            "Fresh" => "Taze",
+            "Grilled" => "Izgara",
+            "Cold" => "Soğuk",
+            "Hot" => "Sıcak",
+            "French" => "Fransız",
+            "IceCream" => "Dondurma",
+            "Cake" => "Pasta",
+            "Chocolate" => "Çikolata",
+            "Cheese" => "Peynirli",
+            "Crispy" => "Çıtır",
+            "Fried" => "Kızarmış",
+            "Mediterranean" => "Akdeniz",
+            "Italian" => "İtalyan",
+            "Drinks" => "İçecek",
+            "Comfort" => "Ev Yemeği",
+            "SlowCook" => "Yavaş Pişmiş",
+            _ => tag.Trim()
+        };
+    }
+}
+
+<section class="swipe-page">
+    <div class="swipe-container">
+        <header class="swipe-header">
+            <div class="location-badge">
+                <span class="location-icon" aria-hidden="true">📍</span>
+                <span>@city</span>
+            </div>
+
+            <div class="liked-counter" id="liked-counter">
+                <span class="heart-icon" aria-hidden="true">❤</span>
+                <span class="counter-value" id="counter-value">@likedCount</span>
+                <span>beğeni</span>
+            </div>
+        </header>
+
+        @if (Model.Any())
+        {
+            <div class="swipe-stage">
+                <div class="card-stack" id="card-stack">
+                    @for (var i = 0; i < swipeItems.Count; i++)
+                    {
+                        var item = swipeItems[i];
+                        var activeClass = i == swipeItems.Count - 1 ? " is-active" : string.Empty;
+
+                        <article class="swipe-card@(activeClass)" data-food-id="@item.Id">
+                            <div class="card-image-container">
+                                <img src="@item.ImageUrl"
+                                     alt="@item.Name"
+                                     class="card-image"
+                                     onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600'">
+
+                                <div class="card-gradient"></div>
+                                <div class="swipe-tint swipe-tint--like"></div>
+                                <div class="swipe-tint swipe-tint--nope"></div>
+
+                                <div class="swipe-indicator like-indicator">
+                                    <span>BEĞEN</span>
+                                </div>
+
+                                <div class="swipe-indicator nope-indicator">
+                                    <span>PAS</span>
+                                </div>
+
+                                <div class="card-overlay-content">
+                                    <div class="food-tags">
+                                        @foreach (var tag in item.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries).Take(3))
+                                        {
+                                            <span class="tag">@TranslateTag(tag)</span>
+                                        }
+                                    </div>
+
+                                    <h3 class="food-name">@item.Name</h3>
+
+                                    <p class="restaurant-info">
+                                        <span aria-hidden="true">•</span>
+                                        <span class="restaurant-name">@item.Restaurant.Name</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </article>
+                    }
+                </div>
+
+                <div class="swipe-buttons">
+                    <button class="swipe-btn nope-btn" id="nope-btn" title="Geç">
+                        <span>✕</span>
+                    </button>
+
+                    <button class="swipe-btn like-btn" id="like-btn" title="Beğen">
+                        <span>❤</span>
+                    </button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="swipe-stage swipe-stage--empty">
+                <div class="no-cards-message">
+                    <div class="message-icon" aria-hidden="true">🍽️</div>
+                    <h3>Tüm yemekleri gördünüz!</h3>
+                    <p>Rotayı oluşturmak için aşağıdaki butonu kullanın.</p>
+                </div>
+            </div>
+        }
+
+        <div class="action-buttons">
+            <a href="@Url.Action("Preferences", "Wizard")" class="secondary-button">
+                <span>← Geri Dön</span>
+            </a>
+
+            <a href="@Url.Action("Generate", "Route")" class="primary-button" id="generate-route-btn">
+                <span>Rotayı Oluştur</span>
+                <span class="button-arrow" aria-hidden="true">→</span>
+            </a>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/js/swipe.js" asp-append-version="true"></script>
+}

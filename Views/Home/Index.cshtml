@@ -1,0 +1,268 @@
+﻿@{
+    ViewData["Title"] = "Food Route - Yemek Rotası Oluştur";
+    Layout = "_Layout";
+}
+
+<!-- Hero Section - Modern SaaS Layout -->
+<section class="landing-hero-v2">
+    <!-- Background Effects -->
+    <div class="hero-bg-glow"></div>
+    <div class="hero-bg-glow-2"></div>
+    <div class="hero-bg-glow-3"></div>
+    
+    <!-- Header with Logo and Nav -->
+    <header class="hero-header">
+        <div class="hero-logo">
+            🍽 FoodRoute
+        </div>
+        <nav class="hero-nav">
+            <a href="#how-it-works" class="nav-link">Nasıl Çalışır</a>
+            <a href="#cities" class="nav-link">Şehirler</a>
+            <a href="@Url.Action("Preferences", "Wizard")" class="nav-cta">Başla →</a>
+        </nav>
+    </header>
+    
+    <!-- Main Content Container -->
+    <div class="hero-main">
+        <!-- Left Content -->
+        <div class="hero-left">
+            <p class="hero-pretitle">Discover Your Taste,</p>
+            <h1 class="hero-title">
+                Build Your
+                <span class="title-accent">Route</span>
+            </h1>
+
+            <p class="hero-description">
+                Tinder usulü yemek keşfi yapın, beğendiğiniz lezzetlerden size özel gurme rotanızı oluşturun.
+            </p>
+
+            <a href="@Url.Action("Preferences", "Wizard")" class="cta-button-primary">
+                🧭 Haydi Yemek Rotası Oluşturalım
+            </a>
+
+            <div class="hero-footer">
+                <div class="city-tags">
+                    <span class="city-tag">İstanbul</span>
+                    <span class="city-tag">Ankara</span>
+                    <span class="city-tag">İzmir</span>
+                    <span class="city-tag">Antalya</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Phone Visual Area -->
+        <div class="hero-right">
+            <!-- Phone Mockup -->
+            <div class="phone-mockup">
+                <div class="phone-frame">
+                    <div class="phone-notch"></div>
+                    <div class="phone-screen">
+                        <div class="phone-content">
+                            <div class="phone-body">
+                                <div class="phone-card">
+                                    <div class="card-image">
+                                        <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop&crop=center" alt="Smash Burger" />
+                                        <div class="card-overlay">
+                                            <span class="status-badge">Açık</span>
+                                            <span class="like-chip">LIKE</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-content">
+                                        <div class="card-header">
+                                            <div>
+                                                <p class="card-subtitle">Smash Burger</p>
+                                                <h3>Burger Lab, Kadıköy</h3>
+                                            </div>
+                                            <div class="card-rating">
+                                                <span class="stars">⭐ 4.9</span>
+                                            </div>
+                                        </div>
+                                        <p class="card-location">Lezzetli burger, gerçek mekan deneyimi</p>
+                                        <div class="card-tags">
+                                            <span class="tag">Burger</span>
+                                            <span class="tag">Kadıköy</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="phone-actions">
+                                    <button class="action-btn dislike" disabled>❌</button>
+                                    <button class="action-btn like" disabled>❤️</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Cities Selection Section -->
+<section class="cities-section">
+    <div class="cities-container">
+        <!-- Section Header -->
+        <div class="section-header">
+            <div class="section-badge">
+                <span class="badge-dot"></span>
+                <span>Başlangıç Noktanızı Seçin</span>
+            </div>
+            <h2 class="section-title">
+                Hangi Şehirde
+                <span class="title-accent">Yemek Keşfi</span>
+                Yapmak İstersiniz?
+            </h2>
+            <p class="section-description">
+                Türkiye'nin en leziz şehirlerinden birini seçin ve size özel gurme rotanızı oluşturmaya başlayın.
+            </p>
+        </div>
+        
+        <!-- Cities Grid -->
+        <div class="cities-grid">
+            <div class="city-card" data-city="istanbul">
+                <div class="city-icon">🌃</div>
+                <h3>İstanbul</h3>
+                <p>Milyonluk şehrin yemek çeşitliliği</p>
+            </div>
+            <div class="city-card" data-city="ankara">
+                <div class="city-icon">🏛️</div>
+                <h3>Ankara</h3>
+                <p>Başkentin seçkin mutfağı</p>
+            </div>
+            <div class="city-card" data-city="izmir">
+                <div class="city-icon">🌊</div>
+                <h3>İzmir</h3>
+                <p>Deniz kıyısının taze yemekleri</p>
+            </div>
+            <div class="city-card" data-city="antalya">
+                <div class="city-icon">☀️</div>
+                <h3>Antalya</h3>
+                <p>Turistlerin favori lezzetleri</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Restaurants Section (Dynamic) -->
+<section class="restaurants-section" id="restaurants-section" style="display: none;">
+    <div class="restaurants-container">
+        <!-- Section Header -->
+        <div class="section-header">
+            <div class="back-button" onclick="resetCitySelection()">← Şehri Değiştir</div>
+            <h2 class="section-title">
+                <span id="selected-city-name">Şehir</span>'in
+                <span class="title-accent">Mekanları</span>
+            </h2>
+            <p class="section-description">
+                Aşağıdaki restoranlardan beğendiklerinizi seçerek rotanızı oluşturun.
+            </p>
+        </div>
+        
+        <!-- Restaurants Grid -->
+        <div class="restaurants-grid" id="restaurants-grid">
+            <!-- Dinamik olarak doldurulacak -->
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="restaurants-actions">
+            <button class="btn-secondary" onclick="resetCitySelection()">Başa Dön</button>
+            <a href="@Url.Action("Preferences", "Wizard")" class="btn-primary">Rotanızı Oluşturun</a>
+        </div>
+    </div>
+</section>
+
+<script>
+// Restaurant Data Mock
+const restaurantData = {
+    istanbul: [
+        { name: "Nusr-Et", category: "Kırmızı Et", rating: 4.8, desc: "Premium steakhouse", icon: "🥩" },
+        { name: "Çiya Sofrası", category: "Anadolu", rating: 4.9, desc: "Geleneksel mutfak", icon: "🍲" },
+        { name: "Karakoy Lokantası", category: "Türk", rating: 4.7, desc: "Klasik taverna", icon: "🍽️" },
+        { name: "Mikla", category: "Fusion", rating: 4.9, desc: "Modern Türk", icon: "🌟" },
+        { name: "Balıkçı Sabahattin", category: "Balık", rating: 4.6, desc: "Taze deniz ürünleri", icon: "🐟" },
+    ],
+    ankara: [
+        { name: "Taverna Ulus", category: "Türk", rating: 4.7, desc: "Başkentin favorisi", icon: "🍽️" },
+        { name: "Kalesa Lokantası", category: "Anadolu", rating: 4.6, desc: "Ev yemekleri", icon: "🍲" },
+        { name: "Doyumsuz", category: "Kırmızı Et", rating: 4.8, desc: "İskender uzmanı", icon: "🥩" },
+        { name: "Hakki Usta Kebap", category: "Kebap", rating: 4.7, desc: "Osmanlı kebapları", icon: "🍖" },
+        { name: "Aşçıbaşı", category: "Türk", rating: 4.5, desc: "Geleneksel tada", icon: "👨‍🍳" },
+    ],
+    izmir: [
+        { name: "Alancha", category: "Balık", rating: 4.8, desc: "Deniz manzaralı", icon: "🐟" },
+        { name: "Alsancak Taverna", category: "Levanten", rating: 4.7, desc: "Sahil keyfi", icon: "🌊" },
+        { name: "Kız Kulesi Restoran", category: "Türk", rating: 4.6, desc: "Ikonik meydan", icon: "🏰" },
+        { name: "Boyacı Sokağı", category: "Rahat Gıda", rating: 4.5, desc: "Sokak lezzetleri", icon: "🌮" },
+        { name: "Müge Restaurant", category: "Anadolu", rating: 4.7, desc: "Şef önerileri", icon: "⭐" },
+    ],
+    antalya: [
+        { name: "Seraser Fine Dining", category: "Akdeniz", rating: 4.9, desc: "Premium deneyim", icon: "🌟" },
+        { name: "Aile Lokantası", category: "Türk", rating: 4.6, desc: "Ailecek oturuş", icon: "👨‍👩‍👧‍👦" },
+        { name: "Sahil Kebap", category: "Kebap", rating: 4.7, desc: "Deniz kenarında", icon: "🍖" },
+        { name: "Troys Restaurant", category: "Uluslararası", rating: 4.8, desc: "Dünya mutfağı", icon: "🌍" },
+        { name: "Yalçın Balık", category: "Balık", rating: 4.7, desc: "Günün balığı", icon: "🐠" },
+    ]
+};
+
+function selectCity(event) {
+    // Get city name from data attribute
+    const city = this.getAttribute('data-city');
+    const cityName = this.querySelector('h3').textContent;
+    
+    // Remove active state from all cards
+    document.querySelectorAll('.city-card').forEach(card => {
+        card.classList.remove('active');
+    });
+    
+    // Add active state to selected card
+    this.classList.add('active');
+    
+    // Show restaurants section
+    document.getElementById('restaurants-section').style.display = 'block';
+    document.getElementById('selected-city-name').textContent = cityName;
+    
+    // Load restaurants
+    loadRestaurants(city);
+    
+    // Smooth scroll
+    setTimeout(() => {
+        document.getElementById('restaurants-section').scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+}
+
+function loadRestaurants(city) {
+    const grid = document.getElementById('restaurants-grid');
+    grid.innerHTML = '';
+    
+    const restaurants = restaurantData[city] || [];
+    
+    restaurants.forEach(restaurant => {
+        const card = document.createElement('div');
+        card.className = 'restaurant-card';
+        card.innerHTML = `
+            <div class="restaurant-icon">${restaurant.icon}</div>
+            <h3>${restaurant.name}</h3>
+            <div class="restaurant-category">${restaurant.category}</div>
+            <p>${restaurant.desc}</p>
+            <div class="restaurant-rating">
+                <span class="stars">⭐ ${restaurant.rating}</span>
+            </div>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+function resetCitySelection() {
+    document.getElementById('restaurants-section').style.display = 'none';
+    document.querySelectorAll('.city-card').forEach(card => {
+        card.classList.remove('active');
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Add click handlers to city cards
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.city-card').forEach(card => {
+        card.addEventListener('click', selectCity);
+    });
+});
+</script>
