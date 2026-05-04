@@ -4280,3 +4280,251 @@ backdrop-filter: blur(20px);
         padding: 1.25rem;
     }
 }
+
+@media (max-width: 680px) {
+    .landing-hero-v2 {
+        min-height: auto;
+        padding: 1rem 1rem 2.75rem;
+        overflow-x: hidden;
+    }
+
+    .hero-header {
+        gap: 1.1rem;
+    }
+
+    .hero-logo {
+        width: 100%;
+        justify-content: center;
+        font-size: 1.45rem;
+    }
+
+    .hero-nav {
+        gap: 0.65rem;
+    }
+
+    .nav-link {
+        padding: 0.55rem 0.35rem;
+    }
+
+    .nav-cta {
+        padding: 0.85rem 1.35rem;
+    }
+
+    .hero-main {
+        gap: 1.35rem;
+        padding: 1.35rem 0 0;
+    }
+
+    .hero-left {
+        gap: 1.35rem;
+    }
+
+    .hero-pretitle {
+        font-size: 0.98rem;
+    }
+
+    .hero-title {
+        font-size: clamp(1.9rem, 8vw, 2.35rem);
+        line-height: 1.12;
+        letter-spacing: 0;
+    }
+
+    .hero-description {
+        width: min(100%, 330px);
+        font-size: 0.96rem;
+        line-height: 1.55;
+    }
+
+    .cta-button-primary {
+        width: min(100%, 340px);
+        min-height: 62px;
+        padding: 0.95rem 1.2rem;
+        border-radius: 28px;
+        font-size: 1rem;
+        line-height: 1.35;
+        box-shadow: 0 8px 22px rgba(255, 122, 0, 0.28);
+    }
+
+    .city-tags {
+        width: min(100%, 340px);
+        margin: 0 auto;
+        gap: 0.55rem;
+    }
+
+    .city-tag {
+        flex: 1 1 calc(50% - 0.55rem);
+        min-width: 0;
+    }
+
+    .phone-mockup {
+        width: min(230px, 72vw);
+        height: min(460px, 112vw);
+        margin-top: 0.4rem;
+    }
+
+    .how-section {
+        padding: 3.25rem 1rem 2.75rem;
+    }
+
+    .how-header {
+        margin-bottom: 1.75rem;
+    }
+
+    .how-title {
+        font-size: clamp(1.75rem, 7vw, 2.05rem);
+        line-height: 1.2;
+    }
+
+    .how-step {
+        min-height: auto;
+        padding: 1.2rem;
+        border-radius: 14px;
+    }
+
+    .how-step-top {
+        margin-bottom: 1.6rem;
+    }
+
+    .how-step p {
+        font-size: 0.92rem;
+        line-height: 1.55;
+    }
+
+    .foodroute-preferences {
+        min-height: 100svh;
+        overflow-x: hidden;
+        overflow-y: visible;
+        padding: 0.9rem 1rem calc(6.75rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    .foodroute-preferences__header {
+        margin-bottom: 1.1rem;
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+
+    .foodroute-preferences__brand {
+        margin-bottom: 0.9rem;
+    }
+
+    .foodroute-preferences__brand-mark {
+        width: 38px;
+        height: 38px;
+    }
+
+    .foodroute-preferences__brand-text {
+        font-size: 1.2rem;
+    }
+
+    .foodroute-preferences__steps {
+        gap: 0.45rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .foodroute-preferences__step {
+        padding: 0.52rem 0.7rem;
+        font-size: 0.78rem;
+    }
+
+    .foodroute-preferences__step-arrow {
+        font-size: 0.8rem;
+    }
+
+    .foodroute-preferences__progress {
+        margin-bottom: 1rem;
+    }
+
+    .foodroute-preferences__title {
+        color: #ffffff;
+        font-size: clamp(1.75rem, 8vw, 2.35rem);
+        line-height: 1.12;
+        letter-spacing: 0;
+    }
+
+    .foodroute-preferences__subtitle {
+        color: rgba(247, 248, 251, 0.74);
+        font-size: 0.92rem;
+        line-height: 1.5;
+    }
+
+    .foodroute-preferences__panel {
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(20, 22, 28, 0.98) 0%, rgba(12, 13, 17, 0.99) 100%);
+        box-shadow: 0 18px 46px rgba(0, 0, 0, 0.36);
+    }
+
+    .foodroute-preferences__form {
+        padding: 1rem;
+    }
+
+    .foodroute-preferences__section {
+        gap: 1rem;
+        opacity: 1;
+        transform: none;
+        animation: none;
+    }
+
+    .foodroute-preferences__section + .foodroute-preferences__section {
+        margin-top: 1.35rem;
+    }
+
+    .foodroute-preferences__section-title {
+        color: #ffffff;
+    }
+
+    .foodroute-preferences__day-button {
+        height: 46px;
+        border-radius: 12px;
+    }
+
+    .foodroute-preferences__days-hint {
+        color: rgba(247, 248, 251, 0.68);
+    }
+
+    .foodroute-preferences__city-card {
+        min-height: 94px;
+        padding: 1rem;
+        border-radius: 14px;
+    }
+
+    .foodroute-preferences__category-grid {
+        gap: 0.65rem;
+    }
+
+    .foodroute-preferences__category-pill {
+        min-height: 42px;
+        padding: 0.72rem 0.85rem;
+        border-radius: 13px;
+    }
+
+    .foodroute-preferences__cta-dock {
+        padding: 1rem 1rem calc(0.8rem + env(safe-area-inset-bottom, 0px));
+        background: linear-gradient(180deg, rgba(11, 12, 16, 0) 0%, rgba(11, 12, 16, 0.7) 34%, #0B0C10 100%);
+    }
+
+    .foodroute-preferences__cta-button {
+        height: 52px;
+        border-radius: 14px;
+        font-size: 0.96rem;
+        box-shadow: 0 8px 24px rgba(255, 107, 53, 0.36);
+    }
+
+    .swipe-page {
+        min-height: 100svh;
+        padding: 1rem;
+    }
+
+    .swipe-header,
+    .action-buttons {
+        gap: 0.75rem;
+    }
+
+    .card-stack {
+        height: min(420px, 58vh);
+    }
+
+    .result-page {
+        padding: 20px 16px;
+    }
+}
