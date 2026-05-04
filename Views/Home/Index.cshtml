@@ -16,8 +16,8 @@
             🍽 FoodRoute
         </div>
         <nav class="hero-nav">
-            <a href="#how-it-works" class="nav-link">Nasıl Çalışır</a>
-            <a href="#cities" class="nav-link">Şehirler</a>
+            <a href="#how-it-works" class="nav-link" data-scroll-target="how-it-works">Nasıl Çalışır</a>
+            <a href="#cities" class="nav-link" data-scroll-target="cities">Şehirler</a>
             <a href="@Url.Action("Preferences", "Wizard")" class="nav-cta">Başla →</a>
         </nav>
     </header>
@@ -42,10 +42,10 @@
 
             <div class="hero-footer">
                 <div class="city-tags">
-                    <span class="city-tag">İstanbul</span>
-                    <span class="city-tag">Ankara</span>
-                    <span class="city-tag">İzmir</span>
-                    <span class="city-tag">Antalya</span>
+                    <button type="button" class="city-tag" data-hero-city="istanbul">İstanbul</button>
+                    <button type="button" class="city-tag" data-hero-city="ankara">Ankara</button>
+                    <button type="button" class="city-tag" data-hero-city="izmir">İzmir</button>
+                    <button type="button" class="city-tag" data-hero-city="antalya">Antalya</button>
                 </div>
             </div>
         </div>
@@ -97,8 +97,36 @@
     </div>
 </section>
 
+<!-- How It Works Section -->
+<section class="how-section" id="how-it-works">
+    <div class="how-container">
+        <div class="section-header">
+            <div class="section-badge">
+                <span class="badge-dot"></span>
+                <span>3 Adımda Gurme Rota</span>
+            </div>
+            <h2 class="section-title">Nasıl Çalışır?</h2>
+        </div>
+
+        <div class="how-grid">
+            <div class="how-step">
+                <span class="how-step-number">1</span>
+                <h3>Şehrini seç</h3>
+            </div>
+            <div class="how-step">
+                <span class="how-step-number">2</span>
+                <h3>Yemekleri sağa/sola kaydır</h3>
+            </div>
+            <div class="how-step">
+                <span class="how-step-number">3</span>
+                <h3>Beğendiklerinden rota oluştur</h3>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- Cities Selection Section -->
-<section class="cities-section">
+<section class="cities-section" id="cities">
     <div class="cities-container">
         <!-- Section Header -->
         <div class="section-header">
@@ -203,29 +231,52 @@ const restaurantData = {
     ]
 };
 
-function selectCity(event) {
-    // Get city name from data attribute
-    const city = this.getAttribute('data-city');
-    const cityName = this.querySelector('h3').textContent;
+function scrollToSection(id) {
+    const target = document.getElementById(id);
+    if (!target) {
+        return;
+    }
+
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function setSelectedCity(city) {
+    const selectedCard = document.querySelector(`.city-card[data-city="${city}"]`);
+    if (!selectedCard) {
+        return;
+    }
+
+    const cityName = selectedCard.querySelector('h3').textContent;
     
-    // Remove active state from all cards
     document.querySelectorAll('.city-card').forEach(card => {
-        card.classList.remove('active');
+        card.classList.toggle('active', card === selectedCard);
     });
-    
-    // Add active state to selected card
-    this.classList.add('active');
-    
-    // Show restaurants section
+
+    document.querySelectorAll('.city-tag').forEach(tag => {
+        tag.classList.toggle('active', tag.getAttribute('data-hero-city') === city);
+    });
+
     document.getElementById('restaurants-section').style.display = 'block';
     document.getElementById('selected-city-name').textContent = cityName;
-    
-    // Load restaurants
+
     loadRestaurants(city);
-    
-    // Smooth scroll
-    setTimeout(() => {
-        document.getElementById('restaurants-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+function selectCity() {
+    const city = this.getAttribute('data-city');
+
+    setSelectedCity(city);
+    window.setTimeout(() => {
+        scrollToSection('restaurants-section');
+    }, 100);
+}
+
+function selectHeroCity() {
+    const city = this.getAttribute('data-hero-city');
+
+    setSelectedCity(city);
+    window.setTimeout(() => {
+        scrollToSection('cities');
     }, 100);
 }
 
@@ -256,11 +307,25 @@ function resetCitySelection() {
     document.querySelectorAll('.city-card').forEach(card => {
         card.classList.remove('active');
     });
+    document.querySelectorAll('.city-tag').forEach(tag => {
+        tag.classList.remove('active');
+    });
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // Add click handlers to city cards
 document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('[data-scroll-target]').forEach(link => {
+        link.addEventListener('click', function(event) {
+            event.preventDefault();
+            scrollToSection(this.getAttribute('data-scroll-target'));
+        });
+    });
+
+    document.querySelectorAll('.city-tag[data-hero-city]').forEach(tag => {
+        tag.addEventListener('click', selectHeroCity);
+    });
+
     document.querySelectorAll('.city-card').forEach(card => {
         card.addEventListener('click', selectCity);
     });
