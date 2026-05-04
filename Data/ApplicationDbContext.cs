@@ -44,6 +44,7 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.SessionId).IsRequired().HasMaxLength(100);
+            entity.HasIndex(e => new { e.SessionId, e.FoodItemId }).IsUnique();
             
             entity.HasOne(e => e.FoodItem)
                 .WithMany()

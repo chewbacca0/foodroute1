@@ -56,12 +56,10 @@ public class WizardController : Controller
             return View(model);
         }
 
-        // Store preferences in session
         HttpContext.Session.SetString("City", model.City);
         HttpContext.Session.SetInt32("Days", model.Days);
         HttpContext.Session.SetString("Categories", string.Join(",", model.Categories ?? new List<string>()));
-        
-        // Generate a unique session ID for selections
+
         var sessionId = Guid.NewGuid().ToString();
         HttpContext.Session.SetString("SelectionSessionId", sessionId);
 
@@ -80,22 +78,19 @@ public class WizardController : Controller
             return RedirectToAction("Preferences");
         }
 
-        var categories = string.IsNullOrEmpty(categoriesStr) 
-            ? new List<string>() 
+        var categories = string.IsNullOrEmpty(categoriesStr)
+            ? new List<string>()
             : categoriesStr.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
 
-        // Get already swiped food items
         var swipedIds = await _context.UserSelections
             .Where(s => s.SessionId == sessionId)
             .Select(s => s.FoodItemId)
             .ToListAsync();
 
-        // Get food items matching city and categories
         var query = _context.FoodItems
             .Include(f => f.Restaurant)
             .Where(f => f.Restaurant.City == city && !swipedIds.Contains(f.Id));
 
-        // Filter by categories if any selected
         if (categories.Any())
         {
             query = query.Where(f => categories.Any(c => f.Tags.Contains(c)));
@@ -103,7 +98,6 @@ public class WizardController : Controller
 
         var foodItems = await query.ToListAsync();
 
-        // Get liked count for UI
         var likedCount = await _context.UserSelections
             .Where(s => s.SessionId == sessionId && s.IsLiked)
             .CountAsync();
@@ -117,23 +111,62 @@ public class WizardController : Controller
 
     // POST: Wizard/Like (AJAX)
     [HttpPost]
-    public async Task<IActionResult> Like([FromBody] SwipeRequest request)
+    public Task<IActionResult> Like([FromBody] SwipeRequest request)
+    {
+        return SaveSwipeAsync(request, isLiked: true);
+    }
+
+    // POST: Wizard/Dislike (AJAX)
+    [HttpPost]
+    public Task<IActionResult> Dislike([FromBody] SwipeRequest request)
+    {
+        return SaveSwipeAsync(request, isLiked: false);
+    }
+
+    private async Task<IActionResult> SaveSwipeAsync(SwipeRequest? request, bool isLiked)
     {
         var sessionId = HttpContext.Session.GetString("SelectionSessionId");
         if (string.IsNullOrEmpty(sessionId))
         {
-            return Json(new { success = false, message = "Session expired" });
+            return StatusCode(StatusCodes.Status401Unauthorized, new { success = false, message = "Session expired" });
         }
 
-        var selection = new UserSelection
+        if (request is null || request.FoodItemId <= 0)
         {
-            SessionId = sessionId,
-            FoodItemId = request.FoodItemId,
-            IsLiked = true,
-            CreatedAt = DateTime.UtcNow
-        };
+            return BadRequest(new { success = false, message = "Invalid food item." });
+        }
 
-        _context.UserSelections.Add(selection);
+        var city = HttpContext.Session.GetString("City");
+        var foodItemExists = await _context.FoodItems
+            .Include(f => f.Restaurant)
+            .AnyAsync(f => f.Id == request.FoodItemId && (string.IsNullOrEmpty(city) || f.Restaurant.City == city));
+
+        if (!foodItemExists)
+        {
+            return NotFound(new { success = false, message = "Food item was not found." });
+        }
+
+        var selection = await _context.UserSelections
+            .FirstOrDefaultAsync(s => s.SessionId == sessionId && s.FoodItemId == request.FoodItemId);
+
+        if (selection is null)
+        {
+            selection = new UserSelection
+            {
+                SessionId = sessionId,
+                FoodItemId = request.FoodItemId,
+                IsLiked = isLiked,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.UserSelections.Add(selection);
+        }
+        else
+        {
+            selection.IsLiked = isLiked;
+            selection.CreatedAt = DateTime.UtcNow;
+        }
+
         await _context.SaveChangesAsync();
 
         var likedCount = await _context.UserSelections
@@ -141,30 +174,6 @@ public class WizardController : Controller
             .CountAsync();
 
         return Json(new { success = true, likedCount });
-    }
-
-    // POST: Wizard/Dislike (AJAX)
-    [HttpPost]
-    public async Task<IActionResult> Dislike([FromBody] SwipeRequest request)
-    {
-        var sessionId = HttpContext.Session.GetString("SelectionSessionId");
-        if (string.IsNullOrEmpty(sessionId))
-        {
-            return Json(new { success = false, message = "Session expired" });
-        }
-
-        var selection = new UserSelection
-        {
-            SessionId = sessionId,
-            FoodItemId = request.FoodItemId,
-            IsLiked = false,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        _context.UserSelections.Add(selection);
-        await _context.SaveChangesAsync();
-
-        return Json(new { success = true });
     }
 }
 

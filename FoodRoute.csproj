@@ -14,4 +14,10 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="FoodRoute.Tests\**\*.cs" />
+    <Content Remove="FoodRoute.Tests\**\*" />
+    <None Remove="FoodRoute.Tests\**\*" />
+  </ItemGroup>
+
 </Project>
