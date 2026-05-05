@@ -9,6 +9,8 @@ public class Restaurant
     public string? LocationUrl { get; set; }
     public double Latitude { get; set; }
     public double Longitude { get; set; }
+    public double Rating { get; set; }
+    public int ReviewCount { get; set; }
     
     public ICollection<FoodItem> FoodItems { get; set; } = new List<FoodItem>();
 }

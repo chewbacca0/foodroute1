@@ -1,0 +1,30 @@
+[
+  {
+    "RestaurantName": "Ornek Lokanta",
+    "City": "Istanbul",
+    "FeaturedProductName": "Mercimek Corbasi",
+    "FeaturedProductDescription": "Swipe ekraninda gorunecek kisa aciklama.",
+    "ProductImageUrl": "/images/foods/mercimek-corbasi.jpg",
+    "Address": "Ornek Mahallesi, Istanbul",
+    "Latitude": 41.0082,
+    "Longitude": 28.9784,
+    "LocationUrl": "https://www.google.com/maps/search/?api=1&query=41.0082%2C28.9784",
+    "Tags": "Traditional,Lunch,Local",
+    "MealType": "Lunch",
+    "SourceUrl": ""
+  },
+  {
+    "RestaurantName": "Ornek Lokanta",
+    "City": "Istanbul",
+    "FeaturedProductName": "Sutlac",
+    "FeaturedProductDescription": "Ayni restorana ikinci yemek eklemek icin RestaurantName, City ve Address ayni kalir.",
+    "ProductImageUrl": "/images/foods/sutlac.jpg",
+    "Address": "Ornek Mahallesi, Istanbul",
+    "Latitude": 41.0082,
+    "Longitude": 28.9784,
+    "LocationUrl": "https://www.google.com/maps/search/?api=1&query=41.0082%2C28.9784",
+    "Tags": "Dessert,Sweet,Local",
+    "MealType": "Dessert",
+    "SourceUrl": ""
+  }
+]

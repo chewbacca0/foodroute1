@@ -96,7 +96,9 @@ public class WizardController : Controller
             query = query.Where(f => categories.Any(c => f.Tags.Contains(c)));
         }
 
-        var foodItems = await query.ToListAsync();
+        var foodItems = await query
+            .OrderBy(f => Guid.NewGuid())
+            .ToListAsync();
 
         var likedCount = await _context.UserSelections
             .Where(s => s.SessionId == sessionId && s.IsLiked)

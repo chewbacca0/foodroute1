@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-labelledby="title desc">
+  <title id="title">Food image placeholder</title>
+  <desc id="desc">A local placeholder used when a food image is missing.</desc>
+  <rect width="800" height="600" fill="#f4efe6"/>
+  <circle cx="400" cy="300" r="150" fill="#ffffff" stroke="#ded6c7" stroke-width="14"/>
+  <circle cx="400" cy="300" r="92" fill="#f07c54" opacity="0.18"/>
+  <path d="M314 282c32-50 97-62 143-30 46 31 57 94 26 140H336c-29-30-38-74-22-110Z" fill="#f07c54"/>
+  <path d="M300 410h200" stroke="#4b3f36" stroke-width="18" stroke-linecap="round"/>
+  <path d="M250 205v170M550 205v170" stroke="#4b3f36" stroke-width="18" stroke-linecap="round"/>
+  <path d="M525 205c34 24 34 68 0 92" stroke="#4b3f36" stroke-width="18" stroke-linecap="round" fill="none"/>
+</svg>

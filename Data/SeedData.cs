@@ -11,11 +11,6 @@ public static class SeedData
         using var context = new ApplicationDbContext(
             serviceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
 
-        if (context.Restaurants.Any())
-        {
-            return;
-        }
-
         var environment = serviceProvider.GetRequiredService<IWebHostEnvironment>();
         var datasetPath = Path.Combine(environment.ContentRootPath, "Data", "restaurant-dataset.json");
 
@@ -40,28 +35,52 @@ public static class SeedData
             }))
         {
             var first = group.First();
-            var restaurant = new Restaurant
+            var restaurant = context.Restaurants
+                .Include(r => r.FoodItems)
+                .FirstOrDefault(r =>
+                    r.Name == group.Key.Name
+                    && r.City == group.Key.City
+                    && r.Address == group.Key.Address);
+
+            if (restaurant is null)
             {
-                Name = group.Key.Name,
-                City = group.Key.City,
-                Address = group.Key.Address,
-                Latitude = first.Latitude,
-                Longitude = first.Longitude,
-                LocationUrl = first.LocationUrl
-            };
+                restaurant = new Restaurant
+                {
+                    Name = group.Key.Name,
+                    City = group.Key.City,
+                    Address = group.Key.Address,
+                    Latitude = first.Latitude,
+                    Longitude = first.Longitude,
+                    LocationUrl = first.LocationUrl,
+                    Rating = first.Rating ?? 0,
+                    ReviewCount = first.ReviewCount
+                };
+
+                context.Restaurants.Add(restaurant);
+            }
 
             foreach (var item in group)
             {
+                var foodName = string.IsNullOrWhiteSpace(item.FeaturedProductName)
+                    ? restaurant.Name
+                    : item.FeaturedProductName.Trim();
+                var imageUrl = item.ProductImageUrl?.Trim() ?? string.Empty;
+
+                if (restaurant.FoodItems.Any(food =>
+                    food.Name == foodName
+                    && food.ImageUrl == imageUrl))
+                {
+                    continue;
+                }
+
                 restaurant.FoodItems.Add(new FoodItem
                 {
-                    Name = string.IsNullOrWhiteSpace(item.FeaturedProductName) ? restaurant.Name : item.FeaturedProductName.Trim(),
-                    ImageUrl = item.ProductImageUrl?.Trim() ?? string.Empty,
+                    Name = foodName,
+                    ImageUrl = imageUrl,
                     Tags = item.Tags?.Trim() ?? string.Empty,
                     MealType = string.IsNullOrWhiteSpace(item.MealType) ? "Lunch" : item.MealType.Trim()
                 });
             }
-
-            context.Restaurants.Add(restaurant);
         }
 
         context.SaveChanges();
@@ -76,6 +95,8 @@ public static class SeedData
         public string Address { get; set; } = string.Empty;
         public double Latitude { get; set; }
         public double Longitude { get; set; }
+        public double? Rating { get; set; }
+        public int ReviewCount { get; set; }
         public string LocationUrl { get; set; } = string.Empty;
         public string Tags { get; set; } = string.Empty;
         public string MealType { get; set; } = string.Empty;

@@ -1,6 +1,26 @@
-﻿@{
+@using System.Text.Json
+@{
     ViewData["Title"] = "Food Route - Yemek Rotası Oluştur";
     Layout = "_Layout";
+
+    var antalyaFoodItems = ViewBag.AntalyaFoodItems as List<FoodRoute.Models.FoodItem> ?? new();
+    var heroFoodItem = antalyaFoodItems.FirstOrDefault();
+    var antalyaRestaurants = antalyaFoodItems
+        .Select(item => new
+        {
+            name = item.Restaurant.Name,
+            category = string.IsNullOrWhiteSpace(item.Restaurant.Address) ? item.MealType : item.Restaurant.Address,
+            rating = item.Restaurant.Rating,
+            desc = item.Name,
+            icon = item.MealType switch
+            {
+                "Breakfast" => "🍳",
+                "Coffee" => "☕",
+                "Dessert" => "🍰",
+                _ => "🍽"
+            }
+        })
+        .ToList();
 }
 
 <!-- Hero Section - Modern SaaS Layout -->
@@ -61,7 +81,7 @@
                             <div class="phone-body">
                                 <div class="phone-card">
                                     <div class="card-image">
-                                        <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop&crop=center" alt="Smash Burger" />
+                                        <img src="@(heroFoodItem?.ImageUrl ?? "/images/placeholder-food.svg")" alt="@(heroFoodItem?.Name ?? "Antalya yemeği")" />
                                         <div class="card-overlay">
                                             <span class="status-badge">Açık</span>
                                             <span class="like-chip">LIKE</span>
@@ -70,17 +90,17 @@
                                     <div class="card-content">
                                         <div class="card-header">
                                             <div>
-                                                <p class="card-subtitle">Smash Burger</p>
-                                                <h3>Burger Lab, Kadıköy</h3>
+                                                <p class="card-subtitle">@(heroFoodItem?.Name ?? "Antalya lezzeti")</p>
+                                                <h3>@(heroFoodItem?.Restaurant.Name ?? "Antalya")</h3>
                                             </div>
                                             <div class="card-rating">
-                                                <span class="stars">⭐ 4.9</span>
+                                                <span class="stars">⭐ @(heroFoodItem?.Restaurant.Rating.ToString("0.0") ?? "4.5")</span>
                                             </div>
                                         </div>
-                                        <p class="card-location">Lezzetli burger, gerçek mekan deneyimi</p>
+                                        <p class="card-location">@(heroFoodItem?.Restaurant.Address ?? "Antalya mekanları")</p>
                                         <div class="card-tags">
-                                            <span class="tag">Burger</span>
-                                            <span class="tag">Kadıköy</span>
+                                            <span class="tag">@(heroFoodItem?.MealType ?? "Yemek")</span>
+                                            <span class="tag">Antalya</span>
                                         </div>
                                     </div>
                                 </div>
@@ -237,13 +257,8 @@ const restaurantData = {
         { name: "Boyacı Sokağı", category: "Rahat Gıda", rating: 4.5, desc: "Sokak lezzetleri", icon: "🌮" },
         { name: "Müge Restaurant", category: "Anadolu", rating: 4.7, desc: "Şef önerileri", icon: "⭐" },
     ],
-    antalya: [
-        { name: "Seraser Fine Dining", category: "Akdeniz", rating: 4.9, desc: "Premium deneyim", icon: "🌟" },
-        { name: "Aile Lokantası", category: "Türk", rating: 4.6, desc: "Ailecek oturuş", icon: "👨‍👩‍👧‍👦" },
-        { name: "Sahil Kebap", category: "Kebap", rating: 4.7, desc: "Deniz kenarında", icon: "🍖" },
-        { name: "Troys Restaurant", category: "Uluslararası", rating: 4.8, desc: "Dünya mutfağı", icon: "🌍" },
-        { name: "Yalçın Balık", category: "Balık", rating: 4.7, desc: "Günün balığı", icon: "🐠" },
-    ]
+    antalya: @Html.Raw(JsonSerializer.Serialize(antalyaRestaurants))
+
 };
 
 function scrollToSection(id) {
