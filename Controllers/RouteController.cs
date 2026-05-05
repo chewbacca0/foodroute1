@@ -210,25 +210,22 @@ public class RouteController : Controller
 
     private RouteResult BuildRoute(List<UserSelection> selections, int days, string city)
     {
+        days = Math.Max(days, 1);
+
         var result = new RouteResult
         {
             City = city,
             TotalRestaurants = selections.Select(s => s.FoodItem.RestaurantId).Distinct().Count()
         };
 
-        var mealOrder = new[] { "Breakfast", "Lunch", "Coffee", "Dinner", "Dessert" };
-        var originalPools = mealOrder.ToDictionary(
-            mealType => mealType,
-            mealType => selections
-                .Where(selection => NormalizeMealType(selection.FoodItem.MealType) == mealType)
-                .OrderBy(selection => selection.CreatedAt)
-                .ThenBy(selection => selection.Id)
-                .ToList());
+        var orderedSelections = selections
+            .OrderBy(selection => GetMealRank(NormalizeMealType(selection.FoodItem.MealType)))
+            .ThenBy(selection => selection.CreatedAt)
+            .ThenBy(selection => selection.Id)
+            .DistinctBy(selection => selection.FoodItem.RestaurantId)
+            .ToList();
 
-        var remainingPools = originalPools.ToDictionary(
-            pair => pair.Key,
-            pair => pair.Value.ToList());
-        var usedRouteRestaurantIds = new HashSet<int>();
+        var selectionsByDay = DistributeSelectionsAcrossDays(orderedSelections, days);
 
         for (int day = 1; day <= days; day++)
         {
@@ -239,26 +236,9 @@ public class RouteController : Controller
                 Meals = new List<RouteMeal>()
             };
 
-            var usedRestaurantIds = new HashSet<int>();
-            Restaurant? previousRestaurant = null;
-
-            foreach (var mealType in mealOrder)
+            foreach (var selection in OrderDaySelections(selectionsByDay[day - 1]))
             {
-                var selection = PickRouteSelection(
-                    remainingPools[mealType],
-                    previousRestaurant,
-                    usedRestaurantIds,
-                    usedRouteRestaurantIds);
-
-                if (selection is null)
-                {
-                    continue;
-                }
-
-                remainingPools[mealType].Remove(selection);
-                usedRestaurantIds.Add(selection.FoodItem.RestaurantId);
-                usedRouteRestaurantIds.Add(selection.FoodItem.RestaurantId);
-                previousRestaurant = selection.FoodItem.Restaurant;
+                var mealType = NormalizeMealType(selection.FoodItem.MealType);
 
                 routeDay.Meals.Add(new RouteMeal
                 {
@@ -272,6 +252,70 @@ public class RouteController : Controller
         }
 
         return result;
+    }
+
+    private static List<List<UserSelection>> DistributeSelectionsAcrossDays(List<UserSelection> selections, int days)
+    {
+        var selectionsByDay = Enumerable.Range(0, days)
+            .Select(_ => new List<UserSelection>())
+            .ToList();
+
+        if (!selections.Any())
+        {
+            return selectionsByDay;
+        }
+
+        var baseCount = selections.Count / days;
+        var extraCount = selections.Count % days;
+        var index = 0;
+
+        for (var dayIndex = 0; dayIndex < days; dayIndex++)
+        {
+            var countForDay = baseCount + (dayIndex < extraCount ? 1 : 0);
+            for (var i = 0; i < countForDay && index < selections.Count; i++)
+            {
+                selectionsByDay[dayIndex].Add(selections[index]);
+                index++;
+            }
+        }
+
+        return selectionsByDay;
+    }
+
+    private static List<UserSelection> OrderDaySelections(List<UserSelection> daySelections)
+    {
+        var remaining = daySelections
+            .OrderBy(selection => GetMealRank(NormalizeMealType(selection.FoodItem.MealType)))
+            .ThenBy(selection => selection.CreatedAt)
+            .ThenBy(selection => selection.Id)
+            .ToList();
+        var ordered = new List<UserSelection>();
+        Restaurant? previousRestaurant = null;
+
+        while (remaining.Any())
+        {
+            var nextMealRank = remaining.Min(selection => GetMealRank(NormalizeMealType(selection.FoodItem.MealType)));
+            var candidates = remaining
+                .Where(selection => GetMealRank(NormalizeMealType(selection.FoodItem.MealType)) == nextMealRank)
+                .ToList();
+
+            var nextSelection = previousRestaurant is null || !HasCoordinates(previousRestaurant)
+                ? candidates
+                    .OrderBy(selection => selection.CreatedAt)
+                    .ThenBy(selection => selection.Id)
+                    .First()
+                : candidates
+                    .OrderBy(selection => DistanceInKilometers(previousRestaurant, selection.FoodItem.Restaurant))
+                    .ThenBy(selection => selection.CreatedAt)
+                    .ThenBy(selection => selection.Id)
+                    .First();
+
+            ordered.Add(nextSelection);
+            remaining.Remove(nextSelection);
+            previousRestaurant = nextSelection.FoodItem.Restaurant;
+        }
+
+        return ordered;
     }
 
     private static string NormalizeMealType(string? mealType)
@@ -299,43 +343,17 @@ public class RouteController : Controller
         };
     }
 
-    private static UserSelection? PickRouteSelection(
-        List<UserSelection> remainingPool,
-        Restaurant? previousRestaurant,
-        HashSet<int> usedRestaurantIds,
-        HashSet<int> usedRouteRestaurantIds)
+    private static int GetMealRank(string mealType)
     {
-        var candidates = remainingPool
-            .Where(selection => !usedRouteRestaurantIds.Contains(selection.FoodItem.RestaurantId))
-            .ToList();
-
-        if (!candidates.Any())
+        return mealType switch
         {
-            return null;
-        }
-
-        var uniqueRestaurantCandidates = candidates
-            .Where(selection => !usedRestaurantIds.Contains(selection.FoodItem.RestaurantId))
-            .ToList();
-
-        if (uniqueRestaurantCandidates.Any())
-        {
-            candidates = uniqueRestaurantCandidates;
-        }
-
-        if (previousRestaurant is null || !HasCoordinates(previousRestaurant))
-        {
-            return candidates
-                .OrderBy(selection => selection.CreatedAt)
-                .ThenBy(selection => selection.Id)
-                .FirstOrDefault();
-        }
-
-        return candidates
-            .OrderBy(selection => DistanceInKilometers(previousRestaurant, selection.FoodItem.Restaurant))
-            .ThenBy(selection => selection.CreatedAt)
-            .ThenBy(selection => selection.Id)
-            .FirstOrDefault();
+            "Breakfast" => 0,
+            "Lunch" => 1,
+            "Coffee" => 2,
+            "Dinner" => 3,
+            "Dessert" => 4,
+            _ => 1
+        };
     }
 
     private static List<Restaurant> GetOrderedRouteRestaurants(RouteResult routeResult)
