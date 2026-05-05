@@ -46,10 +46,7 @@ public class RouteController : Controller
         var routeResult = BuildRoute(likedSelections, days, city);
         
         // Generate Google Maps URL and store in ViewBag
-        var restaurants = likedSelections
-            .Select(s => s.FoodItem.Restaurant)
-            .DistinctBy(r => r.Id)
-            .ToList();
+        var restaurants = GetOrderedRouteRestaurants(routeResult);
         ViewBag.LikedRestaurants = restaurants;
         ViewBag.GoogleMapsUrl = GenerateRouteUrl(restaurants);
 
@@ -84,21 +81,15 @@ public class RouteController : Controller
             return RedirectToAction("Swipe", "Wizard");
         }
 
-        // Get unique restaurants
-        var restaurants = likedSelections
-            .Select(s => s.FoodItem.Restaurant)
-            .DistinctBy(r => r.Id)
-            .ToList();
+        var routeResultForAllDays = BuildRoute(likedSelections, HttpContext.Session.GetInt32("Days") ?? 1, "");
+        var restaurants = GetOrderedRouteRestaurants(routeResultForAllDays);
 
         // If dayNumber is specified, filter restaurants for that day
         if (dayNumber > 0)
         {
-            var days = HttpContext.Session.GetInt32("Days") ?? 1;
-            var routeResult = BuildRoute(likedSelections, days, "");
-            
-            if (dayNumber <= routeResult.Days.Count)
+            if (dayNumber <= routeResultForAllDays.Days.Count)
             {
-                var dayMeals = routeResult.Days[dayNumber - 1].Meals;
+                var dayMeals = routeResultForAllDays.Days[dayNumber - 1].Meals;
                 restaurants = dayMeals
                     .Select(m => m.Restaurant)
                     .DistinctBy(r => r.Id)
@@ -225,18 +216,19 @@ public class RouteController : Controller
             TotalRestaurants = selections.Select(s => s.FoodItem.RestaurantId).Distinct().Count()
         };
 
-        // Group food items by meal type
-        var breakfastItems = selections.Where(s => s.FoodItem.MealType == "Breakfast").ToList();
-        var lunchItems = selections.Where(s => s.FoodItem.MealType == "Lunch" || s.FoodItem.MealType == "StreetFood").ToList();
-        var dinnerItems = selections.Where(s => s.FoodItem.MealType == "Dinner").ToList();
-        var coffeeItems = selections.Where(s => s.FoodItem.MealType == "Coffee").ToList();
-        var dessertItems = selections.Where(s => s.FoodItem.MealType == "Dessert").ToList();
+        var mealOrder = new[] { "Breakfast", "Lunch", "Coffee", "Dinner", "Dessert" };
+        var originalPools = mealOrder.ToDictionary(
+            mealType => mealType,
+            mealType => selections
+                .Where(selection => NormalizeMealType(selection.FoodItem.MealType) == mealType)
+                .OrderBy(selection => selection.CreatedAt)
+                .ThenBy(selection => selection.Id)
+                .ToList());
 
-        // Items without specific meal type go to lunch
-        var otherItems = selections
-            .Where(s => !new[] { "Breakfast", "Lunch", "Dinner", "Coffee", "Dessert", "StreetFood" }.Contains(s.FoodItem.MealType))
-            .ToList();
-        lunchItems.AddRange(otherItems);
+        var remainingPools = originalPools.ToDictionary(
+            pair => pair.Key,
+            pair => pair.Value.ToList());
+        var usedRouteRestaurantIds = new HashSet<int>();
 
         for (int day = 1; day <= days; day++)
         {
@@ -247,63 +239,32 @@ public class RouteController : Controller
                 Meals = new List<RouteMeal>()
             };
 
-            // Assign breakfast
-            if (breakfastItems.Any())
-            {
-                var breakfast = breakfastItems[(day - 1) % breakfastItems.Count];
-                routeDay.Meals.Add(new RouteMeal
-                {
-                    MealType = "Kahvaltı 🌅",
-                    FoodItem = breakfast.FoodItem,
-                    Restaurant = breakfast.FoodItem.Restaurant
-                });
-            }
+            var usedRestaurantIds = new HashSet<int>();
+            Restaurant? previousRestaurant = null;
 
-            // Assign coffee
-            if (coffeeItems.Any())
+            foreach (var mealType in mealOrder)
             {
-                var coffee = coffeeItems[(day - 1) % coffeeItems.Count];
-                routeDay.Meals.Add(new RouteMeal
-                {
-                    MealType = "Kahve Molası ☕",
-                    FoodItem = coffee.FoodItem,
-                    Restaurant = coffee.FoodItem.Restaurant
-                });
-            }
+                var selection = PickRouteSelection(
+                    remainingPools[mealType],
+                    previousRestaurant,
+                    usedRestaurantIds,
+                    usedRouteRestaurantIds);
 
-            // Assign lunch
-            if (lunchItems.Any())
-            {
-                var lunch = lunchItems[(day - 1) % lunchItems.Count];
-                routeDay.Meals.Add(new RouteMeal
+                if (selection is null)
                 {
-                    MealType = "Öğle Yemeği 🍽️",
-                    FoodItem = lunch.FoodItem,
-                    Restaurant = lunch.FoodItem.Restaurant
-                });
-            }
+                    continue;
+                }
 
-            // Assign dessert
-            if (dessertItems.Any())
-            {
-                var dessert = dessertItems[(day - 1) % dessertItems.Count];
-                routeDay.Meals.Add(new RouteMeal
-                {
-                    MealType = "Tatlı 🍰",
-                    FoodItem = dessert.FoodItem,
-                    Restaurant = dessert.FoodItem.Restaurant
-                });
-            }
+                remainingPools[mealType].Remove(selection);
+                usedRestaurantIds.Add(selection.FoodItem.RestaurantId);
+                usedRouteRestaurantIds.Add(selection.FoodItem.RestaurantId);
+                previousRestaurant = selection.FoodItem.Restaurant;
 
-            // Assign dinner
-            if (dinnerItems.Any())
-            {
-                var dinner = dinnerItems[(day - 1) % dinnerItems.Count];
                 routeDay.Meals.Add(new RouteMeal
                 {
-                    MealType = "Akşam Yemeği 🌙",
-                    FoodItem = dinner.FoodItem,
-                    Restaurant = dinner.FoodItem.Restaurant
+                    MealType = GetMealLabel(mealType),
+                    FoodItem = selection.FoodItem,
+                    Restaurant = selection.FoodItem.Restaurant
                 });
             }
 
@@ -311,5 +272,109 @@ public class RouteController : Controller
         }
 
         return result;
+    }
+
+    private static string NormalizeMealType(string? mealType)
+    {
+        return mealType switch
+        {
+            "Breakfast" => "Breakfast",
+            "Coffee" => "Coffee",
+            "Dinner" => "Dinner",
+            "Dessert" => "Dessert",
+            "Lunch" or "StreetFood" => "Lunch",
+            _ => "Lunch"
+        };
+    }
+
+    private static string GetMealLabel(string mealType)
+    {
+        return mealType switch
+        {
+            "Breakfast" => "Kahvaltı 🌅",
+            "Coffee" => "Kahve Molası ☕",
+            "Dinner" => "Akşam Yemeği 🌙",
+            "Dessert" => "Tatlı 🍰",
+            _ => "Öğle Yemeği 🍽️"
+        };
+    }
+
+    private static UserSelection? PickRouteSelection(
+        List<UserSelection> remainingPool,
+        Restaurant? previousRestaurant,
+        HashSet<int> usedRestaurantIds,
+        HashSet<int> usedRouteRestaurantIds)
+    {
+        var candidates = remainingPool
+            .Where(selection => !usedRouteRestaurantIds.Contains(selection.FoodItem.RestaurantId))
+            .ToList();
+
+        if (!candidates.Any())
+        {
+            return null;
+        }
+
+        var uniqueRestaurantCandidates = candidates
+            .Where(selection => !usedRestaurantIds.Contains(selection.FoodItem.RestaurantId))
+            .ToList();
+
+        if (uniqueRestaurantCandidates.Any())
+        {
+            candidates = uniqueRestaurantCandidates;
+        }
+
+        if (previousRestaurant is null || !HasCoordinates(previousRestaurant))
+        {
+            return candidates
+                .OrderBy(selection => selection.CreatedAt)
+                .ThenBy(selection => selection.Id)
+                .FirstOrDefault();
+        }
+
+        return candidates
+            .OrderBy(selection => DistanceInKilometers(previousRestaurant, selection.FoodItem.Restaurant))
+            .ThenBy(selection => selection.CreatedAt)
+            .ThenBy(selection => selection.Id)
+            .FirstOrDefault();
+    }
+
+    private static List<Restaurant> GetOrderedRouteRestaurants(RouteResult routeResult)
+    {
+        return routeResult.Days
+            .SelectMany(day => day.Meals)
+            .Select(meal => meal.Restaurant)
+            .DistinctBy(restaurant => restaurant.Id)
+            .ToList();
+    }
+
+    private static bool HasCoordinates(Restaurant restaurant)
+    {
+        return restaurant.Latitude != 0 && restaurant.Longitude != 0;
+    }
+
+    private static double DistanceInKilometers(Restaurant from, Restaurant to)
+    {
+        if (!HasCoordinates(from) || !HasCoordinates(to))
+        {
+            return double.MaxValue;
+        }
+
+        const double earthRadiusKilometers = 6371;
+        var latitudeDistance = ToRadians(to.Latitude - from.Latitude);
+        var longitudeDistance = ToRadians(to.Longitude - from.Longitude);
+        var fromLatitude = ToRadians(from.Latitude);
+        var toLatitude = ToRadians(to.Latitude);
+
+        var a = Math.Sin(latitudeDistance / 2) * Math.Sin(latitudeDistance / 2)
+            + Math.Cos(fromLatitude) * Math.Cos(toLatitude)
+            * Math.Sin(longitudeDistance / 2) * Math.Sin(longitudeDistance / 2);
+
+        var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+        return earthRadiusKilometers * c;
+    }
+
+    private static double ToRadians(double degrees)
+    {
+        return degrees * Math.PI / 180;
     }
 }

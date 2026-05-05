@@ -5,7 +5,8 @@
 
     var likedCount = (int)(ViewBag.LikedCount ?? 0);
     var city = ViewBag.City as string ?? string.Empty;
-    var swipeItems = Model.Take(10).Reverse().ToList();
+    var swipeLimit = (int)(ViewBag.SwipeLimit ?? 10);
+    var swipeItems = Model.Take(swipeLimit).Reverse().ToList();
 
     string TranslateTag(string tag)
     {

@@ -81,6 +81,8 @@ public class WizardController : Controller
         var categories = string.IsNullOrEmpty(categoriesStr)
             ? new List<string>()
             : categoriesStr.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+        var days = Math.Max(HttpContext.Session.GetInt32("Days") ?? 1, 1);
+        var swipeLimit = days * 10;
 
         var swipedIds = await _context.UserSelections
             .Where(s => s.SessionId == sessionId)
@@ -98,6 +100,7 @@ public class WizardController : Controller
 
         var foodItems = await query
             .OrderBy(f => Guid.NewGuid())
+            .Take(swipeLimit)
             .ToListAsync();
 
         var likedCount = await _context.UserSelections
@@ -107,6 +110,7 @@ public class WizardController : Controller
         ViewBag.LikedCount = likedCount;
         ViewBag.SessionId = sessionId;
         ViewBag.City = city;
+        ViewBag.SwipeLimit = swipeLimit;
 
         return View(foodItems);
     }
