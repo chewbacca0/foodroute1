@@ -76,7 +76,7 @@
 
                         <article class="swipe-card@(activeClass)" data-food-id="@item.Id">
                             <div class="card-image-container">
-                                <img src="@item.ImageUrl"
+                                <img src="@Url.Action("Show", "FoodImage", new { id = item.Id })"
                                      alt="@item.Name"
                                      class="card-image"
                                      onerror="this.src='/images/placeholder-food.svg'">

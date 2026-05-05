@@ -24,13 +24,18 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
             entity.Property(e => e.City).IsRequired().HasMaxLength(100);
             entity.Property(e => e.Address).HasMaxLength(500);
+            entity.Property(e => e.Cuisine).HasMaxLength(100);
         });
 
         modelBuilder.Entity<FoodItem>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(1000);
             entity.Property(e => e.ImageUrl).IsRequired();
+            entity.Property(e => e.ImageFileName).HasMaxLength(260);
+            entity.Property(e => e.ImageContentType).HasMaxLength(100);
+            entity.Property(e => e.ImageData).HasColumnType("varbinary(max)");
             entity.Property(e => e.Tags).HasMaxLength(500);
             entity.Property(e => e.MealType).HasMaxLength(50);
             

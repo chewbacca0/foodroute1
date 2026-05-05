@@ -101,7 +101,7 @@
                                 <article class="meal-item">
                                     <div class="meal-type">@FormatMealLabel(meal.FoodItem.MealType)</div>
                                     <div class="meal-content">
-                                        <img src="@meal.FoodItem.ImageUrl"
+                                        <img src="@Url.Action("Show", "FoodImage", new { id = meal.FoodItem.Id })"
                                              alt="@meal.FoodItem.Name"
                                              class="meal-image"
                                              onerror="this.src='/images/placeholder-food.svg'">

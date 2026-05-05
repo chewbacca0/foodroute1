@@ -81,7 +81,7 @@
                             <div class="phone-body">
                                 <div class="phone-card">
                                     <div class="card-image">
-                                        <img src="@(heroFoodItem?.ImageUrl ?? "/images/placeholder-food.svg")" alt="@(heroFoodItem?.Name ?? "Antalya yemeği")" />
+                                        <img src="@(heroFoodItem is null ? "/images/placeholder-food.svg" : Url.Action("Show", "FoodImage", new { id = heroFoodItem.Id }))" alt="@(heroFoodItem?.Name ?? "Antalya yemeği")" />
                                         <div class="card-overlay">
                                             <span class="status-badge">Açık</span>
                                             <span class="like-chip">LIKE</span>
