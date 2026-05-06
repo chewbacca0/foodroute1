@@ -97,7 +97,6 @@
             <div class="hero-footer">
                 <div class="city-tags">
                     <button type="button" class="city-tag" data-hero-city="istanbul">İstanbul</button>
-                    <button type="button" class="city-tag" data-hero-city="ankara">Ankara</button>
                     <button type="button" class="city-tag" data-hero-city="izmir">İzmir</button>
                     <button type="button" class="city-tag" data-hero-city="antalya">Antalya</button>
                 </div>
@@ -166,7 +165,7 @@
                     <span class="how-step-icon" aria-hidden="true">📍</span>
                 </div>
                 <h3>Şehrini seç</h3>
-                <p>İstanbul, Ankara, İzmir ya da Antalya — hangi şehri keşfetmek istediğini söyle.</p>
+                <p>İstanbul, İzmir ya da Antalya — hangi şehri keşfetmek istediğini söyle.</p>
             </div>
 
             <span class="how-connector" aria-hidden="true">——›</span>
@@ -220,11 +219,6 @@
                 <h3>İstanbul</h3>
                 <p>Milyonluk şehrin yemek çeşitliliği</p>
             </div>
-            <div class="city-card" data-city="ankara">
-                <div class="city-icon">🏛️</div>
-                <h3>Ankara</h3>
-                <p>Başkentin seçkin mutfağı</p>
-            </div>
             <div class="city-card" data-city="izmir">
                 <div class="city-icon">🌊</div>
                 <h3>İzmir</h3>
@@ -271,13 +265,6 @@
 // Restaurant Data Mock
 const restaurantData = {
     istanbul: @Html.Raw(JsonSerializer.Serialize(istanbulRestaurants)),
-    ankara: [
-        { name: "Taverna Ulus", category: "Türk", rating: 4.7, desc: "Başkentin favorisi", icon: "🍽️" },
-        { name: "Kalesa Lokantası", category: "Anadolu", rating: 4.6, desc: "Ev yemekleri", icon: "🍲" },
-        { name: "Doyumsuz", category: "Kırmızı Et", rating: 4.8, desc: "İskender uzmanı", icon: "🥩" },
-        { name: "Hakki Usta Kebap", category: "Kebap", rating: 4.7, desc: "Osmanlı kebapları", icon: "🍖" },
-        { name: "Aşçıbaşı", category: "Türk", rating: 4.5, desc: "Geleneksel tada", icon: "👨‍🍳" },
-    ],
     izmir: @Html.Raw(JsonSerializer.Serialize(izmirRestaurants)),
     antalya: @Html.Raw(JsonSerializer.Serialize(antalyaRestaurants))
 

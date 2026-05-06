@@ -59,7 +59,7 @@ public class WizardControllerTests
     public async Task Like_RejectsFoodItemFromAnotherCity()
     {
         await using var context = CreateContext();
-        var foodItem = await SeedFoodItemAsync(context, city: "Ankara");
+        var foodItem = await SeedFoodItemAsync(context, city: "Bursa");
         var controller = CreateController(context, city: "İstanbul");
 
         var result = await controller.Like(new SwipeRequest { FoodItemId = foodItem.Id });
