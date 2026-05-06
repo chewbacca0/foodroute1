@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 using FoodRoute.Data;
 using FoodRoute.Models;
 
@@ -95,7 +96,7 @@ public class WizardController : Controller
 
         if (categories.Any())
         {
-            query = query.Where(f => categories.Any(c => f.Tags.Contains(c)));
+            query = ApplyCategoryFilter(query, categories);
         }
 
         var foodItems = await query
@@ -113,6 +114,33 @@ public class WizardController : Controller
         ViewBag.SwipeLimit = swipeLimit;
 
         return View(foodItems);
+    }
+
+    private static IQueryable<FoodItem> ApplyCategoryFilter(IQueryable<FoodItem> query, List<string> categories)
+    {
+        var parameter = Expression.Parameter(typeof(FoodItem), "food");
+        Expression? predicate = null;
+
+        foreach (var category in categories.Select(c => c.Trim()).Where(c => !string.IsNullOrWhiteSpace(c)).Distinct())
+        {
+            var categoryValue = Expression.Constant(category);
+            var tags = Expression.Property(parameter, nameof(FoodItem.Tags));
+            var mealType = Expression.Property(parameter, nameof(FoodItem.MealType));
+            var tagMatch = Expression.Call(tags, nameof(string.Contains), Type.EmptyTypes, categoryValue);
+            var mealTypeMatch = Expression.Equal(mealType, categoryValue);
+            var categoryMatch = Expression.OrElse(tagMatch, mealTypeMatch);
+
+            predicate = predicate is null
+                ? categoryMatch
+                : Expression.OrElse(predicate, categoryMatch);
+        }
+
+        if (predicate is null)
+        {
+            return query;
+        }
+
+        return query.Where(Expression.Lambda<Func<FoodItem, bool>>(predicate, parameter));
     }
 
     // POST: Wizard/Like (AJAX)

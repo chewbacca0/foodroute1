@@ -42,7 +42,7 @@
         "Latitude":  41.0245,
         "Longitude":  28.9738,
         "LocationUrl":  "https://www.google.com/maps?q=41.0245,28.9738",
-        "Tags":  "Traditional,Ege",
+        "Tags":  "Traditional,Ege,Vegan",
         "MealType":  "Lunch",
         "Cuisine":  "turkish",
         "SourceImageFileName":  "Karaköy Lokantası — Zeytinyağlı enginar.jpg"
@@ -1002,9 +1002,9 @@
         "Latitude":  41.0082,
         "Longitude":  28.9784,
         "LocationUrl":  "https://www.google.com/maps?q=41.0082,28.9784",
-        "Tags":  "Istanbul,Modern",
+        "Tags":  "Istanbul,Modern,Healthy,Vegan",
         "MealType":  "Dinner",
-        "Cuisine":  "turkish",
+        "Cuisine":  "vegan",
         "SourceImageFileName":  "Healin Foods — Protein bowl.png"
     },
     {

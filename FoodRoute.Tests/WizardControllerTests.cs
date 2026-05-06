@@ -68,6 +68,22 @@ public class WizardControllerTests
         Assert.Empty(context.UserSelections);
     }
 
+    [Fact]
+    public async Task Swipe_IncludesFoodItem_WhenCategoryMatchesMealType()
+    {
+        await using var context = CreateContext();
+        var dinner = await SeedFoodItemAsync(context, tags: "Steak", mealType: "Dinner");
+        var lunch = await SeedFoodItemAsync(context, tags: "Steak", mealType: "Lunch");
+        var controller = CreateController(context, categories: "Dinner");
+
+        var result = await controller.Swipe();
+
+        var view = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsAssignableFrom<List<FoodItem>>(view.Model);
+        Assert.Contains(model, item => item.Id == dinner.Id);
+        Assert.DoesNotContain(model, item => item.Id == lunch.Id);
+    }
+
     private static ApplicationDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
@@ -77,11 +93,15 @@ public class WizardControllerTests
         return new ApplicationDbContext(options);
     }
 
-    private static WizardController CreateController(ApplicationDbContext context, string city = "İstanbul")
+    private static WizardController CreateController(
+        ApplicationDbContext context,
+        string city = "İstanbul",
+        string categories = "")
     {
         var session = new TestSession();
         session.SetString("SelectionSessionId", "test-session");
         session.SetString("City", city);
+        session.SetString("Categories", categories);
 
         var httpContext = new DefaultHttpContext
         {
@@ -97,7 +117,11 @@ public class WizardControllerTests
         };
     }
 
-    private static async Task<FoodItem> SeedFoodItemAsync(ApplicationDbContext context, string city = "İstanbul")
+    private static async Task<FoodItem> SeedFoodItemAsync(
+        ApplicationDbContext context,
+        string city = "İstanbul",
+        string tags = "Dinner",
+        string mealType = "Dinner")
     {
         var restaurant = new Restaurant
         {
@@ -110,8 +134,8 @@ public class WizardControllerTests
         {
             Name = "Test Food",
             ImageUrl = "https://example.com/food.jpg",
-            Tags = "Dinner",
-            MealType = "Dinner",
+            Tags = tags,
+            MealType = mealType,
             Restaurant = restaurant
         };
 
