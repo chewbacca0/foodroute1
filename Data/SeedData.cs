@@ -204,7 +204,7 @@ public static class SeedData
         {
             var desktopDirectory = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
             var sourceFileName = string.IsNullOrWhiteSpace(sourceImageFileName) ? fileName : sourceImageFileName;
-            foreach (var sourceFolder in new[] { "antalyayemek", "istanbul" })
+            foreach (var sourceFolder in new[] { "antalyayemek", "istanbul", "izmir" })
             {
                 var desktopImagePath = Path.Combine(desktopDirectory, sourceFolder, sourceFileName);
                 if (File.Exists(desktopImagePath))
