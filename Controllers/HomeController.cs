@@ -25,6 +25,18 @@ public class HomeController : Controller
             .OrderBy(f => f.Restaurant.Name)
             .ToListAsync();
 
+        ViewBag.IstanbulFoodItems = await _context.FoodItems
+            .Include(f => f.Restaurant)
+            .Where(f => f.Restaurant.City == "İstanbul")
+            .OrderBy(f => f.Restaurant.Name)
+            .ToListAsync();
+
+        ViewBag.IzmirFoodItems = await _context.FoodItems
+            .Include(f => f.Restaurant)
+            .Where(f => f.Restaurant.City == "İzmir")
+            .OrderBy(f => f.Restaurant.Name)
+            .ToListAsync();
+
         return View();
     }
 

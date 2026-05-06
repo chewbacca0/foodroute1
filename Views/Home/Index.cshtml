@@ -4,8 +4,42 @@
     Layout = "_Layout";
 
     var antalyaFoodItems = ViewBag.AntalyaFoodItems as List<FoodRoute.Models.FoodItem> ?? new();
+    var istanbulFoodItems = ViewBag.IstanbulFoodItems as List<FoodRoute.Models.FoodItem> ?? new();
+    var izmirFoodItems = ViewBag.IzmirFoodItems as List<FoodRoute.Models.FoodItem> ?? new();
     var heroFoodItem = antalyaFoodItems.FirstOrDefault();
+    var istanbulRestaurants = istanbulFoodItems
+        .Select(item => new
+        {
+            name = item.Restaurant.Name,
+            category = string.IsNullOrWhiteSpace(item.Restaurant.Address) ? item.MealType : item.Restaurant.Address,
+            rating = item.Restaurant.Rating,
+            desc = item.Name,
+            icon = item.MealType switch
+            {
+                "Breakfast" => "🍳",
+                "Coffee" => "☕",
+                "Dessert" => "🍰",
+                _ => "🍽"
+            }
+        })
+        .ToList();
     var antalyaRestaurants = antalyaFoodItems
+        .Select(item => new
+        {
+            name = item.Restaurant.Name,
+            category = string.IsNullOrWhiteSpace(item.Restaurant.Address) ? item.MealType : item.Restaurant.Address,
+            rating = item.Restaurant.Rating,
+            desc = item.Name,
+            icon = item.MealType switch
+            {
+                "Breakfast" => "🍳",
+                "Coffee" => "☕",
+                "Dessert" => "🍰",
+                _ => "🍽"
+            }
+        })
+        .ToList();
+    var izmirRestaurants = izmirFoodItems
         .Select(item => new
         {
             name = item.Restaurant.Name,
@@ -236,13 +270,7 @@
 <script>
 // Restaurant Data Mock
 const restaurantData = {
-    istanbul: [
-        { name: "Nusr-Et", category: "Kırmızı Et", rating: 4.8, desc: "Premium steakhouse", icon: "🥩" },
-        { name: "Çiya Sofrası", category: "Anadolu", rating: 4.9, desc: "Geleneksel mutfak", icon: "🍲" },
-        { name: "Karakoy Lokantası", category: "Türk", rating: 4.7, desc: "Klasik taverna", icon: "🍽️" },
-        { name: "Mikla", category: "Fusion", rating: 4.9, desc: "Modern Türk", icon: "🌟" },
-        { name: "Balıkçı Sabahattin", category: "Balık", rating: 4.6, desc: "Taze deniz ürünleri", icon: "🐟" },
-    ],
+    istanbul: @Html.Raw(JsonSerializer.Serialize(istanbulRestaurants)),
     ankara: [
         { name: "Taverna Ulus", category: "Türk", rating: 4.7, desc: "Başkentin favorisi", icon: "🍽️" },
         { name: "Kalesa Lokantası", category: "Anadolu", rating: 4.6, desc: "Ev yemekleri", icon: "🍲" },
@@ -250,13 +278,7 @@ const restaurantData = {
         { name: "Hakki Usta Kebap", category: "Kebap", rating: 4.7, desc: "Osmanlı kebapları", icon: "🍖" },
         { name: "Aşçıbaşı", category: "Türk", rating: 4.5, desc: "Geleneksel tada", icon: "👨‍🍳" },
     ],
-    izmir: [
-        { name: "Alancha", category: "Balık", rating: 4.8, desc: "Deniz manzaralı", icon: "🐟" },
-        { name: "Alsancak Taverna", category: "Levanten", rating: 4.7, desc: "Sahil keyfi", icon: "🌊" },
-        { name: "Kız Kulesi Restoran", category: "Türk", rating: 4.6, desc: "Ikonik meydan", icon: "🏰" },
-        { name: "Boyacı Sokağı", category: "Rahat Gıda", rating: 4.5, desc: "Sokak lezzetleri", icon: "🌮" },
-        { name: "Müge Restaurant", category: "Anadolu", rating: 4.7, desc: "Şef önerileri", icon: "⭐" },
-    ],
+    izmir: @Html.Raw(JsonSerializer.Serialize(izmirRestaurants)),
     antalya: @Html.Raw(JsonSerializer.Serialize(antalyaRestaurants))
 
 };

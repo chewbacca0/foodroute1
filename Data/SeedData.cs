@@ -30,7 +30,9 @@ public static class SeedData
         foreach (var path in new[]
                  {
                      datasetPath,
-                     Path.Combine(dataPath, "restaurant-dataset-antalya-extra.json")
+                     Path.Combine(dataPath, "restaurant-dataset-antalya-extra.json"),
+                     Path.Combine(dataPath, "restaurant-dataset-istanbul.json"),
+                     Path.Combine(dataPath, "restaurant-dataset-izmir.json")
                  }.Where(File.Exists))
         {
             var json = File.ReadAllText(path);
@@ -200,14 +202,15 @@ public static class SeedData
 
         if (!File.Exists(imagePath))
         {
-            var desktopImagePath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-                "antalyayemek",
-                string.IsNullOrWhiteSpace(sourceImageFileName) ? fileName : sourceImageFileName);
-
-            if (File.Exists(desktopImagePath))
+            var desktopDirectory = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+            var sourceFileName = string.IsNullOrWhiteSpace(sourceImageFileName) ? fileName : sourceImageFileName;
+            foreach (var sourceFolder in new[] { "antalyayemek", "istanbul" })
             {
-                return new ImageSeedInfo(fileName, GetContentType(desktopImagePath), File.ReadAllBytes(desktopImagePath));
+                var desktopImagePath = Path.Combine(desktopDirectory, sourceFolder, sourceFileName);
+                if (File.Exists(desktopImagePath))
+                {
+                    return new ImageSeedInfo(fileName, GetContentType(desktopImagePath), File.ReadAllBytes(desktopImagePath));
+                }
             }
 
             return new ImageSeedInfo(fileName, GetContentType(fileName), null);
@@ -224,6 +227,7 @@ public static class SeedData
             ".png" => "image/png",
             ".webp" => "image/webp",
             ".gif" => "image/gif",
+            ".svg" => "image/svg+xml",
             _ => "application/octet-stream"
         };
     }
