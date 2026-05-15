@@ -52,18 +52,25 @@ public static class SeedData
             .ToList();
 
         var seedRestaurantKeys = seedGroups
-            .Select(group => group.Key)
+            .Select(group => (group.Key.Name, group.Key.City, group.Key.Address))
             .ToHashSet();
 
-        var staleRestaurants = context.Restaurants
+        var existingRestaurants = context.Restaurants
             .Include(r => r.FoodItems)
-            .AsEnumerable()
-            .Where(restaurant => !seedRestaurantKeys.Contains(new
-            {
-                Name = restaurant.Name.Trim(),
-                City = restaurant.City?.Trim() ?? string.Empty,
-                Address = restaurant.Address?.Trim() ?? string.Empty
-            }))
+            .ToList();
+
+        var restaurantByKey = existingRestaurants.ToDictionary(
+            restaurant => (
+                restaurant.Name.Trim(),
+                restaurant.City?.Trim() ?? string.Empty,
+                restaurant.Address?.Trim() ?? string.Empty),
+            restaurant => restaurant);
+
+        var staleRestaurants = existingRestaurants
+            .Where(restaurant => !seedRestaurantKeys.Contains((
+                restaurant.Name.Trim(),
+                restaurant.City?.Trim() ?? string.Empty,
+                restaurant.Address?.Trim() ?? string.Empty)))
             .ToList();
 
         if (staleRestaurants.Count > 0)
@@ -74,12 +81,8 @@ public static class SeedData
         foreach (var group in seedGroups)
         {
             var first = group.First();
-            var restaurant = context.Restaurants
-                .Include(r => r.FoodItems)
-                .FirstOrDefault(r =>
-                    r.Name == group.Key.Name
-                    && r.City == group.Key.City
-                    && r.Address == group.Key.Address);
+            var restaurantKey = (group.Key.Name, group.Key.City, group.Key.Address);
+            restaurantByKey.TryGetValue(restaurantKey, out var restaurant);
 
             if (restaurant is null)
             {
