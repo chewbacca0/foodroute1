@@ -20,8 +20,6 @@ public class FoodImageController : Controller
             .Where(f => f.Id == id)
             .Select(f => new
             {
-                f.ImageData,
-                f.ImageContentType,
                 f.ImageUrl
             })
             .FirstOrDefaultAsync();
@@ -29,15 +27,6 @@ public class FoodImageController : Controller
         if (food is null)
         {
             return NotFound();
-        }
-
-        if (food.ImageData is { Length: > 0 })
-        {
-            var contentType = string.IsNullOrWhiteSpace(food.ImageContentType)
-                ? "application/octet-stream"
-                : food.ImageContentType;
-
-            return File(food.ImageData, contentType);
         }
 
         if (!string.IsNullOrWhiteSpace(food.ImageUrl))

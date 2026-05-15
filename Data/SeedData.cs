@@ -13,6 +13,7 @@ public static class SeedData
 
         var environment = serviceProvider.GetRequiredService<IWebHostEnvironment>();
         EnsureDatabaseColumns(context);
+        ClearStoredImages(context);
 
         var dataPath = Path.Combine(environment.ContentRootPath, "Data");
         var datasetPath = Path.Combine(dataPath, "restaurant-dataset.json");
@@ -128,23 +129,15 @@ public static class SeedData
                     ? restaurant.Name
                     : item.FeaturedProductName.Trim();
                 var imageUrl = item.ProductImageUrl?.Trim() ?? string.Empty;
-                var imageInfo = LoadImage(environment.WebRootPath, imageUrl, item.SourceImageFileName);
+                var imageInfo = GetImageInfo(imageUrl);
 
                 var existingFood = restaurant.FoodItems.FirstOrDefault(food => food.Name == foodName);
                 if (existingFood is not null)
                 {
                     existingFood.ImageUrl = imageUrl;
-                    if (imageInfo.Data is { Length: > 0 })
-                    {
-                        existingFood.ImageFileName = imageInfo.FileName;
-                        existingFood.ImageContentType = imageInfo.ContentType;
-                        existingFood.ImageData = imageInfo.Data;
-                    }
-                    else if (string.IsNullOrWhiteSpace(existingFood.ImageFileName))
-                    {
-                        existingFood.ImageFileName = imageInfo.FileName;
-                        existingFood.ImageContentType = imageInfo.ContentType;
-                    }
+                    existingFood.ImageFileName = imageInfo.FileName;
+                    existingFood.ImageContentType = imageInfo.ContentType;
+                    existingFood.ImageData = null;
 
                     existingFood.Description = item.FeaturedProductDescription?.Trim() ?? string.Empty;
                     existingFood.Tags = item.Tags?.Trim() ?? string.Empty;
@@ -158,7 +151,7 @@ public static class SeedData
                     ImageUrl = imageUrl,
                     ImageFileName = imageInfo.FileName,
                     ImageContentType = imageInfo.ContentType,
-                    ImageData = imageInfo.Data,
+                    ImageData = null,
                     Description = item.FeaturedProductDescription?.Trim() ?? string.Empty,
                     Tags = item.Tags?.Trim() ?? string.Empty,
                     MealType = string.IsNullOrWhiteSpace(item.MealType) ? "Lunch" : item.MealType.Trim()
@@ -189,34 +182,23 @@ public static class SeedData
             """);
     }
 
-    private static ImageSeedInfo LoadImage(string webRootPath, string imageUrl, string sourceImageFileName)
+    private static void ClearStoredImages(ApplicationDbContext context)
+    {
+        context.Database.ExecuteSqlRaw("""
+            IF COL_LENGTH('FoodItems', 'ImageData') IS NOT NULL
+                UPDATE FoodItems SET ImageData = NULL WHERE ImageData IS NOT NULL;
+            """);
+    }
+
+    private static ImageSeedInfo GetImageInfo(string imageUrl)
     {
         if (string.IsNullOrWhiteSpace(imageUrl))
         {
-            return new ImageSeedInfo(string.Empty, string.Empty, null);
+            return new ImageSeedInfo(string.Empty, string.Empty);
         }
 
         var fileName = Path.GetFileName(imageUrl);
-        var relativePath = imageUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
-        var imagePath = Path.Combine(webRootPath, relativePath);
-
-        if (!File.Exists(imagePath))
-        {
-            var desktopDirectory = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-            var sourceFileName = string.IsNullOrWhiteSpace(sourceImageFileName) ? fileName : sourceImageFileName;
-            foreach (var sourceFolder in new[] { "antalyayemek", "istanbul", "izmir" })
-            {
-                var desktopImagePath = Path.Combine(desktopDirectory, sourceFolder, sourceFileName);
-                if (File.Exists(desktopImagePath))
-                {
-                    return new ImageSeedInfo(fileName, GetContentType(desktopImagePath), File.ReadAllBytes(desktopImagePath));
-                }
-            }
-
-            return new ImageSeedInfo(fileName, GetContentType(fileName), null);
-        }
-
-        return new ImageSeedInfo(fileName, GetContentType(fileName), File.ReadAllBytes(imagePath));
+        return new ImageSeedInfo(fileName, GetContentType(fileName));
     }
 
     private static string GetContentType(string fileName)
@@ -232,7 +214,7 @@ public static class SeedData
         };
     }
 
-    private sealed record ImageSeedInfo(string FileName, string ContentType, byte[]? Data);
+    private sealed record ImageSeedInfo(string FileName, string ContentType);
 
     private sealed class RestaurantSeedItem
     {
