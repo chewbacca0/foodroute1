@@ -19,6 +19,8 @@ obj/
 
 ## ASP.NET
 appsettings.Development.json
+appsettings.Production.json
+appsettings.Local.json
 
 ## Codex local build artifacts
 .codex-build*/
