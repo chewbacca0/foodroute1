@@ -26,6 +26,7 @@ appsettings.Local.json
 .codex-build*/
 .codex-*.log
 publish/
+publish-somee/
 
 ## OS
 Thumbs.db
