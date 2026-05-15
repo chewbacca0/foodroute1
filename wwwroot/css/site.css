@@ -3020,7 +3020,7 @@ body {
 
 @media (max-width: 560px) {
     .swipe-page {
-        padding: max(0.9rem, env(safe-area-inset-top, 16px)) 0.9rem 2rem;
+        padding: max(0.9rem, env(safe-area-inset-top, 16px)) 0.9rem calc(6.75rem + env(safe-area-inset-bottom, 0px));
     }
 
     .swipe-page .swipe-header {
@@ -3048,6 +3048,7 @@ body {
 
     .swipe-page .action-buttons {
         grid-template-columns: 1fr;
+        margin-bottom: 4.75rem;
     }
 }
 
@@ -4511,7 +4512,7 @@ body {
 
     .swipe-page {
         min-height: 100svh;
-        padding: 1rem;
+        padding: 1rem 1rem calc(6.75rem + env(safe-area-inset-bottom, 0px));
     }
 
     .swipe-header,
