@@ -5,6 +5,7 @@
     Layout = "_Layout";
 
     var likedRestaurants = ViewBag.LikedRestaurants as List<FoodRoute.Models.Restaurant> ?? new();
+    var googleMapsUrlsByDay = ViewBag.GoogleMapsUrlsByDay as Dictionary<int, string> ?? new();
     var routeRestaurants = likedRestaurants.Any()
         ? likedRestaurants
         : Model.Days.SelectMany(day => day.Meals).Select(meal => meal.Restaurant).DistinctBy(r => r.Id).ToList();
@@ -82,10 +83,14 @@
             <div class="itinerary-panel">
                 @foreach (var day in Model.Days)
                 {
+                    var dayGoogleMapsUrl = googleMapsUrlsByDay.TryGetValue(day.DayNumber, out var generatedDayUrl)
+                        ? generatedDayUrl
+                        : Url.Action("OpenGoogleMaps", "Route", new { dayNumber = day.DayNumber, travelMode = "walking" });
+
                     <article class="day-card">
                         <div class="day-header">
                             <span class="day-badge">@day.DayLabel</span>
-                            <a href="@Url.Action("OpenGoogleMaps", "Route", new { dayNumber = day.DayNumber, travelMode = "walking" })"
+                            <a href="@dayGoogleMapsUrl"
                                target="_blank"
                                class="day-map-btn"
                                title="Bu günün rotasını Google Maps'te aç">

@@ -49,6 +49,9 @@ public class RouteController : Controller
         var restaurants = GetOrderedRouteRestaurants(routeResult);
         ViewBag.LikedRestaurants = restaurants;
         ViewBag.GoogleMapsUrl = GenerateRouteUrl(restaurants);
+        ViewBag.GoogleMapsUrlsByDay = routeResult.Days.ToDictionary(
+            day => day.DayNumber,
+            day => GenerateRouteUrl(GetOrderedDayRestaurants(day)));
 
         return View("Result", routeResult);
     }
@@ -82,19 +85,21 @@ public class RouteController : Controller
         }
 
         var routeResultForAllDays = BuildRoute(likedSelections, HttpContext.Session.GetInt32("Days") ?? 1, "");
-        var restaurants = GetOrderedRouteRestaurants(routeResultForAllDays);
+        List<Restaurant> restaurants;
 
-        // If dayNumber is specified, filter restaurants for that day
         if (dayNumber > 0)
         {
-            if (dayNumber <= routeResultForAllDays.Days.Count)
+            var routeDay = routeResultForAllDays.Days.FirstOrDefault(day => day.DayNumber == dayNumber);
+            if (routeDay is null)
             {
-                var dayMeals = routeResultForAllDays.Days[dayNumber - 1].Meals;
-                restaurants = dayMeals
-                    .Select(m => m.Restaurant)
-                    .DistinctBy(r => r.Id)
-                    .ToList();
+                return RedirectToAction(nameof(Generate));
             }
+
+            restaurants = GetOrderedDayRestaurants(routeDay);
+        }
+        else
+        {
+            restaurants = GetOrderedRouteRestaurants(routeResultForAllDays);
         }
 
         // Generate Google Maps URL
@@ -348,19 +353,26 @@ public class RouteController : Controller
         return mealType switch
         {
             "Breakfast" => 0,
-            "Lunch" => 1,
-            "Coffee" => 2,
+            "Coffee" => 1,
+            "Lunch" => 2,
             "Dinner" => 3,
             "Dessert" => 4,
             _ => 1
         };
     }
 
+    private static List<Restaurant> GetOrderedDayRestaurants(RouteDay routeDay)
+    {
+        return routeDay.Meals
+            .Select(meal => meal.Restaurant)
+            .DistinctBy(restaurant => restaurant.Id)
+            .ToList();
+    }
+
     private static List<Restaurant> GetOrderedRouteRestaurants(RouteResult routeResult)
     {
         return routeResult.Days
-            .SelectMany(day => day.Meals)
-            .Select(meal => meal.Restaurant)
+            .SelectMany(GetOrderedDayRestaurants)
             .DistinctBy(restaurant => restaurant.Id)
             .ToList();
     }
